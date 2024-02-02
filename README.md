@@ -47,7 +47,7 @@ There are 13 configurable settings. The two most improtant ones are the TMDB API
 
 # Screenshots
 
-![Overview](Screenshots\Overview.png)
+![Overview](/Screenshots/Overview.png)
 ![Overview_2](Screenshots\Overview 2.png)
 ![Metrics](Screenshots\metrics.png)
 ![add_new](Screenshots\add new.png)
