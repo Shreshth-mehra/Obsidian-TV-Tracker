@@ -48,10 +48,10 @@ There are 13 configurable settings. The two most improtant ones are the TMDB API
 # Screenshots
 
 ![Overview](/Screenshots/Overview.png)
-![Overview_2](/Screenshots/Overview 2.png)
+![Overview_2](/Screenshots/Overview_2.png)
 ![Metrics](/Screenshots/metrics.png)
-![add_new](/Screenshots/add new.png)
-![add_new_options](/Screenshots/add new options.png)
+![add_new](/Screenshots/add_new.png)
+![add_new_options](/Screenshots/add_new_options.png)
 
 # Attribution
 
