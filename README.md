@@ -45,6 +45,14 @@ There are 13 configurable settings. The two most improtant ones are the TMDB API
 5. If the entire library is large and cache was recently cleared or does not exist yet then incorrect Poster paths might be displayed for a while. Please be patient at this point as it will eventually resolve itself
 6. If you change the theme in your vault from Light ot Dark or the other way around. Please turn the plugin off and then turn it on again for necessary changes to reflect.
 
+# Screenshots
+
+![Overview](Screenshots\Overview.png)
+![Overview_2](Screenshots\Overview 2.png)
+![Metrics](Screenshots\metrics.png)
+![add_new](Screenshots\add new.png)
+![add_new_options](Screenshots\add new options.png)
+
 # Attribution
 
 This product uses the TMDB API but is not endorsed or certified by TMDB. You will have to obtain your own personal TMDB API to use this plugin.The TMDB API is used for fetching all necessary details about each title including but not limited to Official title, psoter, Cast members, Genre, Avg rating, Popularity etc.
