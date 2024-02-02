@@ -193,6 +193,7 @@ tags: "tvtracker, ${selectedMovieState.type}"
         open={addDialogOpen}
         handleClose={handleCloseAddDialog}
         handleAddMovie={handleAddMovie}
+        themeMode={themeMode}
       />
 
 
@@ -212,8 +213,8 @@ tags: "tvtracker, ${selectedMovieState.type}"
             onClose={handleDrawerToggle}
             sx={{
               '& .MuiDrawer-paper': {
-                backgroundColor: themeMode === 'dark' ? '#424242' : '#f5f5f5', // Example dark color, you can choose any
-                color: 'inherit'
+                backgroundColor: themeMode === 'dark' ? '#121212' : '#3a3b3c', // Example dark color, you can choose any
+                color: 'white'
               },
             }}
           >

@@ -161,8 +161,8 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 	addGeneralSettings(containerEl: HTMLElement) {
         // Movie Folder Path Setting
         new Setting(containerEl)
-            .setName('Movie Folder Path')
-            .setDesc('Path to the folder where movies are stored.')
+            .setName('Folder Path')
+            .setDesc('Path to the folder where all content is stored.')
             .addText(text => text
                 .setValue(this.plugin.settings.movieFolderPath)
                 .onChange(async (value) => {
@@ -172,8 +172,8 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 
         // API Key Setting
         new Setting(containerEl)
-            .setName('API Key')
-            .setDesc('Your TMDB API Key')
+            .setName('TMDB API Key')
+            .setDesc('Your TMDB API Key. https://www.themoviedb.org/ ')
             .addText(text => text
                 .setValue(this.plugin.settings.apiKey)
                 .onChange(async (value) => {

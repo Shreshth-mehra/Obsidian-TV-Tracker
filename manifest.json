@@ -3,9 +3,9 @@
 	"name": "TV tracker",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"description": "A Movie and TV show tracker.",
+	"author": "Shreshth Mehra",
+	"authorUrl": "",
+	"fundingUrl": "https://www.buymeacoffee.com/shreshthmehra",
 	"isDesktopOnly": false
 }
