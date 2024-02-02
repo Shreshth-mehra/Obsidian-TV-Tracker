@@ -1,15 +1,15 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { TFile } from "obsidian";
-import MovieGrid from "GridView";
+import MovieGrid from "./Components/GridView";
 import { Container, Typography, Box } from "@mui/material";
-import Header from './headerView';
+import Header from './Components/headerView';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import SearchIcon from '@mui/icons-material/Search';
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import Metrics from './metricsView';
+import Metrics from './Components/metricsView';
 import { Platform } from "obsidian";
 
 
