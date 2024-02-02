@@ -56,20 +56,11 @@ export class TVTracker extends ItemView {
 
             for (let file of folderFiles) {
                 const cache = this.app.metadataCache.getFileCache(file);
-                // const content = await this.plugin.app.vault.read(file);
-                // const parsed = matter(content);
-                // moviesData.push(parsed.data);
                 moviesData.push(cache?.frontmatter);
             }
-            // console.log(moviesData);
 
             debugInfo = `folderFiles size; ${folderFiles.length}`
-            // folderFiles.forEach(file => {
 
-            //     debugInfo += `File Path: ${file.name}\n`;
-
-            // });
-            // this.displayDebugInfo(debugInfo);
             const root = createRoot(this.containerEl.children[1]);
             root.render(
                 <React.StrictMode>
@@ -79,24 +70,10 @@ export class TVTracker extends ItemView {
         } catch (error) {
             console.error("Error reading file:", error);
             debugInfo += error;
-            this.displayDebugInfo(debugInfo);
+
         }
     }
 
-    displayDebugInfo(debugInfo) {
-        // Create a debug container element if it doesn't already exist
-        let debugContainer = this.containerEl.querySelector('.debug-container');
-        if (!debugContainer) {
-            debugContainer = this.containerEl.createEl('div', { cls: 'debug-container' });
-        }
-
-        // Set the text content to the debug info
-        debugContainer.setText(debugInfo);
-
-        // Style the debug container for visibility (optional)
-        debugContainer.style.whiteSpace = 'pre-wrap'; // To respect newline characters
-        debugContainer.style.color = 'red'; // Just as an example, you can choose any style
-    }
 
 
     async onClose() {

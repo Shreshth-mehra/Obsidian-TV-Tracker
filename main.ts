@@ -113,14 +113,54 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		let generalSettingsContainer = this.addSectionHeader(containerEl, 'General Settings', 'general-settings');
-    this.addGeneralSettings(generalSettingsContainer);
+		new Setting(containerEl)
+		.setName('Folder Path')
+		.setDesc('Path to the folder where all content is stored.')
+		.addText(text => text
+			.setValue(this.plugin.settings.movieFolderPath)
+			.onChange(async (value) => {
+				this.plugin.settings.movieFolderPath = value;
+				await this.plugin.saveSettings();
+			}));
 
-    let styleSettingsContainer = this.addSectionHeader(containerEl, 'Style Settings', 'style-settings');
+	// API Key Setting
+	new Setting(containerEl)
+		.setName('TMDB API Key')
+		.setDesc('Your TMDB API Key. https://www.themoviedb.org/ ')
+		.addText(text => text
+			.setValue(this.plugin.settings.apiKey)
+			.onChange(async (value) => {
+				this.plugin.settings.apiKey = value;
+				await this.plugin.saveSettings();
+			}));
+
+			new Setting(containerEl)
+			.setName('Number of Results to Show')
+			.setDesc('Number of results to display for add new')
+			.addText(text => text
+				.setValue(String(this.plugin.settings.numberOfResults))
+				.onChange(async (value) => {
+					this.plugin.settings.numberOfResults = Number(value);
+					await this.plugin.saveSettings();
+				}));
+
+			new Setting(containerEl)
+			.setName('Folder Path for Saving Images')
+			.setDesc('Folder path for saving images. Functionality not completed yet')
+			.addText(text => text
+				.setValue(this.plugin.settings.imageFolderPath)
+				.onChange(async (value) => {
+					this.plugin.settings.imageFolderPath = value;
+					await this.plugin.saveSettings();
+				}));
+
+		
+
+    let styleSettingsContainer = this.addSectionHeader(containerEl, 'Style', 'style-settings');
     this.addStyleSettings(styleSettingsContainer);
 
 
-    let metricSettingsContainer = this.addSectionHeader(containerEl, 'Metric Settings', 'metric-settings');
+    let metricSettingsContainer = this.addSectionHeader(containerEl, 'Movie Metrics', 'metric-settings');
     this.addMetricSettings(metricSettingsContainer);
 	}
 
@@ -128,81 +168,23 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 		const header = containerEl.createEl('div', { cls: 'settings-section-header' });
 		header.style.display = 'flex';
 		header.style.alignItems = 'center';
-		header.style.cursor = 'pointer';
 		header.style.marginTop = '1px';
 		header.style.borderBottom = '1px solid #ddd';
 		header.style.paddingBottom = '1px';
-	
-		const icon = containerEl.createEl('span');
-		icon.innerText = '▶'; // Initial icon for collapsed state
-		icon.style.marginRight = '10px';
 	
 		const headerTitle = containerEl.createEl('h3', { text: title });
 	
 		// Create a container for the section content
 		const contentContainer = containerEl.createDiv();
 		contentContainer.id = id;
-		contentContainer.style.display = 'none'; // Start with the content hidden
 	
-		// Append icon and title to the header
-		header.appendChild(icon);
+		// Append title to the header (no icon is appended since there's no toggle functionality)
 		header.appendChild(headerTitle);
-	
-		// Toggle visibility on header click
-		header.addEventListener('click', () => {
-			const isVisible = contentContainer.style.display === 'block';
-			contentContainer.style.display = isVisible ? 'none' : 'block';
-			icon.innerText = isVisible ? '▶' : '▼'; // Toggle the icon
-		});
 	
 		return contentContainer;
 	}
 
-	addGeneralSettings(containerEl: HTMLElement) {
-        // Movie Folder Path Setting
-        new Setting(containerEl)
-            .setName('Folder Path')
-            .setDesc('Path to the folder where all content is stored.')
-            .addText(text => text
-                .setValue(this.plugin.settings.movieFolderPath)
-                .onChange(async (value) => {
-                    this.plugin.settings.movieFolderPath = value;
-                    await this.plugin.saveSettings();
-                }));
 
-        // API Key Setting
-        new Setting(containerEl)
-            .setName('TMDB API Key')
-            .setDesc('Your TMDB API Key. https://www.themoviedb.org/ ')
-            .addText(text => text
-                .setValue(this.plugin.settings.apiKey)
-                .onChange(async (value) => {
-                    this.plugin.settings.apiKey = value;
-                    await this.plugin.saveSettings();
-                }));
-
-				new Setting(containerEl)
-				.setName('Number of Results to Show')
-				.setDesc('Number of results to display for add new')
-				.addText(text => text
-					.setValue(String(this.plugin.settings.numberOfResults))
-					.onChange(async (value) => {
-						this.plugin.settings.numberOfResults = Number(value);
-						await this.plugin.saveSettings();
-					}));
-
-				new Setting(containerEl)
-				.setName('Folder Path for Saving Images')
-				.setDesc('Folder path for saving images. Functionality not completed yet')
-				.addText(text => text
-					.setValue(this.plugin.settings.imageFolderPath)
-					.onChange(async (value) => {
-						this.plugin.settings.imageFolderPath = value;
-						await this.plugin.saveSettings();
-					}));
-	
-    }
-		
 	addStyleSettings(containerEl: HTMLElement) {
 
 		new Setting(containerEl)
