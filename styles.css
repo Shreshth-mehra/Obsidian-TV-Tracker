@@ -1,0 +1,8 @@
+.settings-section-header {
+    display: flex;
+    align-items: center;
+    margin-top: 1px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 1px;
+  }
+  

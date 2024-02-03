@@ -40,7 +40,7 @@ There are 13 configurable settings. The two most improtant ones are the TMDB API
 
 1. When entering a movie in the watchlist. Please enter the rating as 1 or higher otherwise the movie will not be displayed
 2. After adding a title, the TV tracker will ahve to be reloaded for the title to show up.
-3. If the movie has a special character in it's name such as ! or : . Please remove the special charcter from the markdown file name after creating it through Add new.
+3. If the movie has a special character in it's name such as '!' , ':' , '?' or '&' . Please remove the special character from the markdown file name after creating it through Add new.
 4. If there are no results to show for a search then all titles will be displayed but the Showing results will read 0
 5. If the entire library is large and cache was recently cleared or does not exist yet then incorrect Poster paths might be displayed for a while. Please be patient at this point as it will eventually resolve itself
 6. If you change the theme in your vault from Light ot Dark or the other way around. Please turn the plugin off and then turn it on again for necessary changes to reflect.
@@ -55,5 +55,5 @@ There are 13 configurable settings. The two most improtant ones are the TMDB API
 
 # Attribution
 
-This product uses the TMDB API but is not endorsed or certified by TMDB. You will have to obtain your own personal TMDB API to use this plugin.The TMDB API is used for fetching all necessary details about each title including but not limited to Official title, psoter, Cast members, Genre, Avg rating, Popularity etc.
+This product uses the TMDB API but is not endorsed or certified by TMDB. You will have to obtain your own personal TMDB API to use this plugin.The TMDB API is used for fetching all necessary details about each title including but not limited to Official title, poster, Cast members, Genre, Avg rating, Popularity etc.
 ![TMDB_Logo](https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_2-d537fb228cf3ded904ef09b136fe3fec72548ebc1fea3fbbd1ad9e36364db38b.svg)

@@ -166,12 +166,6 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 
 	addSectionHeader(containerEl: HTMLElement, title: string, id: string) {
 		const header = containerEl.createEl('div', { cls: 'settings-section-header' });
-		header.style.display = 'flex';
-		header.style.alignItems = 'center';
-		header.style.marginTop = '1px';
-		header.style.borderBottom = '1px solid #ddd';
-		header.style.paddingBottom = '1px';
-	
 		const headerTitle = containerEl.createEl('h3', { text: title });
 	
 		// Create a container for the section content
