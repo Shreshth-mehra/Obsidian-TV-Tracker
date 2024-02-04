@@ -2,19 +2,26 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Grid, Collapse, Switch, FormControlLabel, IconButton, Checkbox, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Platform } from "obsidian";
 
-const Metrics = ({ movies, topActorsNumber, topGenresNumber, topDirectorsNumber, minMoviesForMetrics, movieMetricsHeadingColor, movieMetricsSubheadingColor, themeMode }) => {
+
+const Metrics = ({ movies, topActorsNumber, topGenresNumber, topDirectorsNumber, minMoviesForMetrics, movieMetricsHeadingColor, movieMetricsSubheadingColor, themeMode, metricsHeading }) => {
   const [topGenres, setTopGenres] = useState([]);
   const [topActors, setTopActors] = useState([]);
   const [totalDuration, setTotalDuration] = useState(0);
   const [topDirectors, setTopDirectors] = useState([]);
-  const [expanded, setExpanded] = useState(false);
+  const [expandedMain, setExpandedMain] = useState(true);
+  const [expandedGenres, setExpandedGenres] = useState(false);
+  const [expandedActors, setExpandedActors] = useState(false);
+  const [expandedDirectors, setExpandedDirectors] = useState(false);
+  const [expandedTasteIndex, setExpandedTasteIndex] = useState(false);
   const [ratingMode, setRatingMode] = useState('Count');
+  const [genreTasteIndexAvg, setGenreTasteIndexAvg] = useState({});
+  const [includeWatchlist, setIncludeWatchlist] = useState(false);
+
 
   useEffect(() => {
     calculateMetrics();
-  }, [movies, ratingMode]);
+  }, [movies, ratingMode, includeWatchlist]);
 
 
   const parseDuration = (durationStr) => {
@@ -35,6 +42,7 @@ const Metrics = ({ movies, topActorsNumber, topGenresNumber, topDirectorsNumber,
 
   const calculateMetrics = () => {
     let genreCounts = {};
+    let genreTasteIndexSum = {};
     let actorCounts = {};
     let genreRatingSum = {};
     let genreMovieCount = {};
@@ -46,50 +54,60 @@ const Metrics = ({ movies, topActorsNumber, topGenresNumber, topDirectorsNumber,
     let directorMovieCount = {};
 
     movies.forEach(movie => {
-      const movieRating = parseFloat(movie.Rating) || 0;
-      const genres = movie.Genre ? movie.Genre.split(', ') : [];
-      const actors = movie.Cast ? movie.Cast.split(', ') : [];
-      const director = movie.Director;
+      if (includeWatchlist || movie.Status !== 'Watchlist') {
+        const movieRating = parseFloat(movie.Rating) || 0;
+        const genres = movie.Genre ? movie.Genre.split(', ') : [];
+        const actors = movie.Cast ? movie.Cast.split(', ') : [];
+        const director = movie.Director;
 
-      genres.forEach(genre => {
-        if (ratingMode === 'Count') {
-          genreCounts[genre] = (genreCounts[genre] || 0) + 1;
-        } else {
-          genreRatingSum[genre] = (genreRatingSum[genre] || 0) + movieRating;
-        }
-        genreMovieCount[genre] = (genreMovieCount[genre] || 0) + 1;
-      });
+        const userRatingScaled = parseFloat(movie.Rating) * 2; // Scale to 1-10
+        const publicRating = parseFloat(movie['Avg vote']);
 
-      actors.forEach((actor, index) => {
-        if (ratingMode === 'Count') {
-          actorCounts[actor] = (actorCounts[actor] || 0) + 1;
-        } else {
-          let ratingMultiplier = movieRating;
-          if (ratingMode === 'Balanced Rating' && index < 4) {
-            ratingMultiplier *= 2;
+        const tasteIndex = userRatingScaled > 0 ? userRatingScaled / publicRating : 0;
+
+
+        genres.forEach(genre => {
+          if (ratingMode === 'Count') {
+            genreCounts[genre] = (genreCounts[genre] || 0) + 1;
+          } else {
+            genreRatingSum[genre] = (genreRatingSum[genre] || 0) + movieRating;
           }
-          actorRatingSum[actor] = (actorRatingSum[actor] || 0) + ratingMultiplier;
-        }
-        actorMovieCount[actor] = (actorMovieCount[actor] || 0) + 1;
-      });
+          genreMovieCount[genre] = (genreMovieCount[genre] || 0) + 1;
+          genreTasteIndexSum[genre] = (genreTasteIndexSum[genre] || 0) + tasteIndex;
+        });
 
-
-      if (director) {
-        if (ratingMode === 'Count') {
-          directorCounts[director] = (directorCounts[director] || 0) + 1;
-        } else {
-          let ratingMultiplier = parseFloat(movie.Rating) || 0;
-          if (ratingMode === 'Balanced Rating') {
-            ratingMultiplier *= 1; // or any other logic for Balanced Rating
+        actors.forEach((actor, index) => {
+          if (ratingMode === 'Count') {
+            actorCounts[actor] = (actorCounts[actor] || 0) + 1;
+          } else {
+            let ratingMultiplier = movieRating;
+            if (ratingMode === 'Balanced Rating' && index < 4) {
+              ratingMultiplier *= 2;
+            }
+            actorRatingSum[actor] = (actorRatingSum[actor] || 0) + ratingMultiplier;
           }
-          directorRatingSum[director] = (directorRatingSum[director] || 0) + ratingMultiplier;
+          actorMovieCount[actor] = (actorMovieCount[actor] || 0) + 1;
+        });
+
+
+        if (director) {
+          if (ratingMode === 'Count') {
+            directorCounts[director] = (directorCounts[director] || 0) + 1;
+          } else {
+            let ratingMultiplier = parseFloat(movie.Rating) || 0;
+            if (ratingMode === 'Balanced Rating') {
+              ratingMultiplier *= 1; // or any other logic for Balanced Rating
+            }
+            directorRatingSum[director] = (directorRatingSum[director] || 0) + ratingMultiplier;
+          }
+          directorMovieCount[director] = (directorMovieCount[director] || 0) + 1;
         }
-        directorMovieCount[director] = (directorMovieCount[director] || 0) + 1;
+
+        if (movie.Duration) {
+          durationSum += parseDuration(movie.Duration);
+        }
       }
 
-      if (movie.Duration) {
-        durationSum += parseDuration(movie.Duration);
-      }
     });
 
     if (ratingMode === 'Count') {
@@ -128,34 +146,59 @@ const Metrics = ({ movies, topActorsNumber, topGenresNumber, topDirectorsNumber,
       setTopActors(Object.entries(avgActorRatings).sort((a, b) => b[1] - a[1]).slice(0, topActorsNumber));
     }
     setTotalDuration(formatDuration(durationSum));
+
+    const genreTasteIndexAvg = {};
+
+    Object.keys(genreTasteIndexSum).forEach(genre => {
+      genreTasteIndexAvg[genre] = (genreTasteIndexSum[genre] / genreMovieCount[genre]).toFixed(3);
+    });
+    setGenreTasteIndexAvg(Object.entries(genreTasteIndexAvg)
+      .sort((a, b) => b[1] - a[1])
+      .reduce((acc, [genre, avg]) => ({ ...acc, [genre]: avg }), {}));
+    // setGenreTasteIndexAvg(genreTasteIndexAvg);
+
+
   };
-  // const handleIncludeRatingChange = (event) => {
-  //   setIncludeRating(event.target.checked);
-  // };
 
   const handleRatingModeChange = (event) => {
     setRatingMode(event.target.value);
   };
 
 
-  const handleExpandClick = () => {
-    setExpanded(!expanded);
+  const handleExpandClickMain = () => {
+    setExpandedMain(!expandedMain);
+  };
+
+  const handleExpandClickGenres = () => {
+    setExpandedGenres(!expandedGenres);
+  };
+
+  const handleExpandClickTasteIndex = () => {
+    setExpandedTasteIndex(!expandedTasteIndex);
+  };
+
+  const handleExpandClickActors = () => {
+    setExpandedActors(!expandedActors);
+  };
+
+  const handleExpandClickDirectors = () => {
+    setExpandedDirectors(!expandedDirectors);
   };
 
   return (
     <Box sx={{ my: 4, borderRadius: 1, position: 'relative' }}>
-      <Box display="flex" justifyContent="space-between">
-        <IconButton
-          onClick={handleExpandClick}
+      <Box display="flex" justifyContent="flex-start" alignItems="center">
+        <ExpandMoreIcon onClick={handleExpandClickMain}
           style={{
-            transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+            color: themeMode === 'dark' ? 'white' : 'inherit', transform: expandedMain ? 'rotate(0deg)' : 'rotate(270deg)',
             transition: 'transform 0.3s'
-          }}
-        >
-          <ExpandMoreIcon style={{ color: themeMode === 'dark' ? 'white' : 'inherit' }} />
-        </IconButton>
-        <Typography variant="h6" style={{ color: movieMetricsHeadingColor }}>Movie Metrics</Typography>
-        <Box>
+          }} />
+
+        <Typography onClick={handleExpandClickMain} variant="h6" style={{ color: movieMetricsHeadingColor }}>{metricsHeading}</Typography>
+      </Box>
+      <Collapse in={expandedMain} timeout="auto" unmountOnExit>
+        <Box display="flex" jjustifyContent="flex-start" alignItems="center" style={{ margin: '10px 0' }}>
+
           <FormControl style={{ color: 'inherit', margin: '10px 0', width: '100px' }}>
             <InputLabel id="rating-mode-label" style={{ color: 'inherit' }}>Rating Mode</InputLabel>
             <Select
@@ -180,47 +223,113 @@ const Metrics = ({ movies, topActorsNumber, topGenresNumber, topDirectorsNumber,
               <MenuItem value="Avg Rating">Avg Rating</MenuItem>
             </Select>
           </FormControl>
-        </Box>
-      </Box>
 
-      <Collapse in={expanded} timeout="auto" unmountOnExit>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={includeWatchlist}
+                onChange={(event) => setIncludeWatchlist(event.target.checked)}
+                name="includeWatchlist"
+                color="primary"
+              />
+            }
+            label="Include Watchlist"
+            style={{ margin: '10px' }} // Adjust styling as needed
+          />
+        </Box>
+
+
+
         <Box style={{ paddingBottom: '15px' }}>
-          <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor }}>Top {topGenresNumber} Genres:</Typography>
-          <Grid container spacing={2}>
-            {topGenres.map(([genre, count], index) => (
-              <Grid item key={genre}>
-                <Typography variant="body1" style={{ color: 'inherit' }}>
-                  {index + 1}. {genre}: {count}
-                </Typography>
-              </Grid>
-            ))}
-          </Grid>
+          <Box display="flex" >
+            <ExpandMoreIcon
+              onClick={handleExpandClickGenres}
+              style={{
+                color: themeMode === 'dark' ? 'white' : 'inherit', transform: expandedGenres ? 'rotate(0deg)' : 'rotate(270deg)',
+                transition: 'transform 0.3s'
+              }} />
+            <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor, cursor: 'pointer' }} onClick={handleExpandClickGenres}>Top {topGenresNumber} Genres:</Typography>
+          </Box>
+          <Collapse in={expandedGenres} timeout="auto" unmountOnExit>
+            <Grid container spacing={2}>
+              {topGenres.map(([genre, count], index) => (
+                <Grid item key={genre}>
+                  <Typography variant="body1" style={{ color: 'inherit' }}>
+                    {index + 1}. {genre}: {count}
+                  </Typography>
+                </Grid>
+              ))}
+            </Grid>
+          </Collapse>
         </Box>
 
         {/* Top 5 Actors */}
         <Box style={{ paddingBottom: '15px' }}>
-          <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor }}>Top {topActorsNumber} Actors:</Typography>
-          <Grid container spacing={2}>
-            {topActors.map(([actor, count], index) => (
-              <Grid item key={actor}>
-                <Typography variant="body1" style={{ color: 'inherit' }}>
-                  {index + 1}. {actor}: {count}
-                </Typography>
-              </Grid>
-            ))}
-          </Grid>
+          <Box display="flex" >
+            <ExpandMoreIcon
+              onClick={handleExpandClickActors}
+              style={{
+                color: themeMode === 'dark' ? 'white' : 'inherit', transform: expandedActors ? 'rotate(0deg)' : 'rotate(270deg)',
+                transition: 'transform 0.3s'
+              }} />
+            <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor, cursor: 'pointer' }} onClick={handleExpandClickActors}>Top {topActorsNumber} Actors:</Typography>
+          </Box>
+          <Collapse in={expandedActors} timeout="auto" unmountOnExit>
+            <Grid container spacing={2}>
+              {topActors.map(([actor, count], index) => (
+                <Grid item key={actor}>
+                  <Typography variant="body1" style={{ color: 'inherit' }}>
+                    {index + 1}. {actor}: {count}
+                  </Typography>
+                </Grid>
+              ))}
+            </Grid>
+          </Collapse>
         </Box>
         <Box style={{ paddingBottom: '15px' }}>
-          <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor }}>Top {topDirectorsNumber} Directors:</Typography>
-          <Grid container spacing={2}>
-            {topDirectors.map(([director, count], index) => (
-              <Grid item key={director}>
-                <Typography variant="body1" style={{ color: 'inherit' }}>
-                  {index + 1}. {director}: {count}
-                </Typography>
-              </Grid>
-            ))}
-          </Grid>
+          <Box display="flex" >
+            <ExpandMoreIcon
+              onClick={handleExpandClickDirectors}
+              style={{
+                color: themeMode === 'dark' ? 'white' : 'inherit', transform: expandedDirectors ? 'rotate(0deg)' : 'rotate(270deg)',
+                transition: 'transform 0.3s'
+              }} />
+            <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor, cursor: 'pointer' }} onClick={handleExpandClickDirectors}>Top {topDirectorsNumber} Directors:</Typography>
+          </Box>
+          <Collapse in={expandedDirectors} timeout="auto" unmountOnExit>
+            <Grid container spacing={2}>
+              {topDirectors.map(([director, count], index) => (
+                <Grid item key={director}>
+                  <Typography variant="body1" style={{ color: 'inherit' }}>
+                    {index + 1}. {director}: {count}
+                  </Typography>
+                </Grid>
+              ))}
+            </Grid>
+          </Collapse>
+        </Box>
+
+        <Box style={{ paddingBottom: '15px' }}>
+          <Box display="flex" >
+            <ExpandMoreIcon
+              onClick={handleExpandClickTasteIndex}
+              style={{
+                color: themeMode === 'dark' ? 'white' : 'inherit', transform: expandedDirectors ? 'rotate(0deg)' : 'rotate(270deg)',
+                transition: 'transform 0.3s'
+              }} />
+            <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor, cursor: 'pointer' }} onClick={handleExpandClickTasteIndex}>Genre Taste Index:</Typography>
+          </Box>
+          <Collapse in={expandedTasteIndex} timeout="auto" unmountOnExit>
+            <Grid container spacing={2}>
+              {Object.entries(genreTasteIndexAvg).map(([genre, avgIndex], index) => (
+                <Grid item key={genre}>
+                  <Typography variant="body1" style={{ color: 'inherit' }}>
+                    {index + 1}. {genre}: {avgIndex}
+                  </Typography>
+                </Grid>
+              ))}
+            </Grid>
+          </Collapse>
         </Box>
 
         {/* Total Duration */}

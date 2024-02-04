@@ -2,7 +2,7 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import { TFile } from "obsidian";
 import MovieGrid from "./Components/GridView";
-import { Container, Typography, Box } from "@mui/material";
+import { Container, Typography, Box, Collapse } from "@mui/material";
 import Header from './Components/headerView';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -11,6 +11,7 @@ import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Metrics from './Components/metricsView';
 import { Platform } from "obsidian";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 
 
@@ -37,7 +38,7 @@ const genreList = [
   { "id": 37, "name": "Western" }
 ];
 
-export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, numberOfResults, toggleFittedImages, apiKey, topActorsNumber, topGenresNumber, topDirectorsNumber, minMoviesForMetrics, movieCardColor, movieMetricsHeadingColor, movieMetricsSubheadingColor, themeMode }) => {
+export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, numberOfResults, toggleFittedImages, apiKey, topActorsNumber, topGenresNumber, topDirectorsNumber, minMoviesForMetrics, movieCardColor, movieMetricsHeadingColor, movieMetricsSubheadingColor, themeMode, metricsHeading }) => {
   // Change movie state to movies, which will be an array
   const [movies, setMovies] = useState([moviesData || []]);
   const [filteredMovies, setFilteredMovies] = useState([]);
@@ -48,6 +49,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showWatchlist, setShowWatchlist] = useState(false);
+  const [legendOpen, setLegendOpen] = useState(false);
   const [sortOption, setSortOption] = useState('Rating');
   const [sortOrder, setSortOrder] = useState('descending');
   const [debugInfo, setDebugInfo] = useState('Should not be this');
@@ -143,6 +145,9 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
     setSortOption(sort);
   };
 
+  const handleExpandLegend = () => {
+    setLegendOpen(!legendOpen);
+  };
 
 
   const applyFilters = () => {
@@ -248,12 +253,44 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
           label="Show Watchlist"
         />
       </Box>
-
       <Typography sx={
         { flexGrow: 1, padding: '20px' }}>
         Showing {filteredMovies.length} results
       </Typography>
-      <Metrics movies={movies} topActorsNumber={topActorsNumber} topGenresNumber={topGenresNumber} topDirectorsNumber={topDirectorsNumber} minMoviesForMetrics={minMoviesForMetrics} movieMetricsHeadingColor={movieMetricsHeadingColor} movieMetricsSubheadingColor={movieMetricsSubheadingColor} themeMode={themeMode} />
+
+      <Box display="flex" justifyContent="flex-start" alignItems="center">
+        <ExpandMoreIcon onClick={handleExpandLegend}
+          style={{
+            color: themeMode === 'dark' ? 'white' : 'inherit', transform: legendOpen ? 'rotate(0deg)' : 'rotate(270deg)',
+            transition: 'transform 0.3s'
+          }} />
+
+        <Typography onClick={handleExpandLegend} variant="h6" style={{ color: movieMetricsHeadingColor }}>Legend</Typography>
+      </Box>
+      <Collapse in={legendOpen} timeout="auto" unmountOnExit>
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+
+          <Typography sx={
+            { display: ' flex', padding: '10px' }}>
+            ⭐ = Don't Bother  | ⭐⭐ = Time waste
+          </Typography>
+
+          <Typography sx={
+            { display: ' flex', padding: '10px' }}>
+            ⭐⭐⭐ = Time Pass  | ⭐⭐⭐✨ = Good Time Pass
+          </Typography>
+          <Typography sx={
+            { display: ' flex', padding: '10px' }}>
+            ⭐⭐⭐⭐ = Good Watch |   ⭐⭐⭐⭐✨ = Great Watch
+          </Typography>
+          <Typography sx={
+            { display: ' flex', padding: '10px' }}>
+            ⭐⭐⭐⭐⭐ = See right now if you haven't
+          </Typography>
+        </Box>
+      </Collapse>
+
+      <Metrics movies={movies} topActorsNumber={topActorsNumber} topGenresNumber={topGenresNumber} topDirectorsNumber={topDirectorsNumber} minMoviesForMetrics={minMoviesForMetrics} movieMetricsHeadingColor={movieMetricsHeadingColor} movieMetricsSubheadingColor={movieMetricsSubheadingColor} themeMode={themeMode} metricsHeading={metricsHeading} />
       <MovieGrid movies={filteredMovies.length > 0 ? filteredMovies : movies} selectedProperties={selectedProperties} numberOfColumns={numberOfColumns} toggleFittedImage={toggleFittedImages} movieCardColor={movieCardColor} />
     </Container>
   );

@@ -10,7 +10,7 @@ export const VIEW_TV = "tv-view"
 
 export class TVTracker extends ItemView {
 
-    constructor(leaf, plugin, folderPath, imageFolderPath, numberOfColumns, numberOfResults, toggleFittedImages, apiKey, topActorsNumber, topGenresNumber, topDirectorsNumber, minMoviesForMetrics, movieCardColor, movieMetricsHeadingColor, movieMetricsSubheadingColor, themeMode) {
+    constructor(leaf, plugin, folderPath, imageFolderPath, numberOfColumns, numberOfResults, toggleFittedImages, apiKey, topActorsNumber, topGenresNumber, topDirectorsNumber, minMoviesForMetrics, movieCardColor, movieMetricsHeadingColor, movieMetricsSubheadingColor, themeMode, metricsHeading) {
         super(leaf);
         this.plugin = plugin;
         this.movieFolderPath = folderPath;
@@ -27,6 +27,7 @@ export class TVTracker extends ItemView {
         this.movieMetricsHeadingColor = movieMetricsHeadingColor;
         this.movieMetricsSubheadingColor = movieMetricsSubheadingColor;
         this.themeMode = themeMode;
+        this.metricsHeading = metricsHeading;
     }
 
     getViewType() {
@@ -64,7 +65,7 @@ export class TVTracker extends ItemView {
             const root = createRoot(this.containerEl.children[1]);
             root.render(
                 <React.StrictMode>
-                    <ReactView moviesData={moviesData} createMarkdownFile={this.createMarkdownFile} numberOfColumns={this.numberOfColumns} numberOfResults={this.numberOfResults} toggleFittedImages={this.toggleFittedImages} apiKey={this.apiKey} topActorsNumber={this.topActorsNumber} topGenresNumber={this.topGenresNumber} topDirectorsNumber={this.topDirectorsNumber} minMoviesForMetrics={this.minMoviesForMetrics} movieCardColor={this.movieCardColor} movieMetricsHeadingColor={this.movieMetricsHeadingColor} movieMetricsSubheadingColor={this.movieMetricsSubheadingColor} themeMode={this.themeMode} />
+                    <ReactView moviesData={moviesData} createMarkdownFile={this.createMarkdownFile} numberOfColumns={this.numberOfColumns} numberOfResults={this.numberOfResults} toggleFittedImages={this.toggleFittedImages} apiKey={this.apiKey} topActorsNumber={this.topActorsNumber} topGenresNumber={this.topGenresNumber} topDirectorsNumber={this.topDirectorsNumber} minMoviesForMetrics={this.minMoviesForMetrics} movieCardColor={this.movieCardColor} movieMetricsHeadingColor={this.movieMetricsHeadingColor} movieMetricsSubheadingColor={this.movieMetricsSubheadingColor} themeMode={this.themeMode} metricsHeading={this.metricsHeading} />
                 </React.StrictMode>
             );
         } catch (error) {

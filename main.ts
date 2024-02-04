@@ -17,6 +17,7 @@ interface TVTrackerSettings {
 	movieMetricsHeadingColor: string;
     movieMetricsSubheadingColor: string;
     movieCardColor: string;
+	metricsHeading: string;
 }
 
 const DEFAULT_TV_SETTINGS: TVTrackerSettings = {
@@ -33,7 +34,8 @@ const DEFAULT_TV_SETTINGS: TVTrackerSettings = {
 	minMoviesForMetrics:7,
 	movieMetricsHeadingColor: 'lightblue', // Default to black
     movieMetricsSubheadingColor: 'orange', // Default to dark grey
-	movieCardColor: 'inherit'
+	movieCardColor: 'inherit',
+	metricsHeading: 'For Number geeks'
 
 }
 
@@ -50,7 +52,7 @@ export default class TVTrackerPlugin extends Plugin {
 			this.themeMode = 'dark';
 		}
 
-		this.registerView(VIEW_TV, (leaf) => new TVTracker(leaf,this,this.settings.movieFolderPath, this.settings.imageFolderPath,this.settings.numberOfColumns,this.settings.numberOfResults,this.settings.toggleFittedImages, this.settings.apiKey, this.settings.topActorsNumber, this.settings.topGenresNumber,this.settings.topDirectorsNumber,this.settings.minMoviesForMetrics, this.settings.movieCardColor, this.settings.movieMetricsHeadingColor,this.settings.movieMetricsSubheadingColor, this.themeMode));
+		this.registerView(VIEW_TV, (leaf) => new TVTracker(leaf,this,this.settings.movieFolderPath, this.settings.imageFolderPath,this.settings.numberOfColumns,this.settings.numberOfResults,this.settings.toggleFittedImages, this.settings.apiKey, this.settings.topActorsNumber, this.settings.topGenresNumber,this.settings.topDirectorsNumber,this.settings.minMoviesForMetrics, this.settings.movieCardColor, this.settings.movieMetricsHeadingColor,this.settings.movieMetricsSubheadingColor, this.themeMode, this.settings.metricsHeading));
 		// console.log(this.settings.movieFolderPath);
 		this.addRibbonIcon('star','Open TV Tracker', ()=>  {
 			this.activateView();
@@ -69,7 +71,7 @@ export default class TVTrackerPlugin extends Plugin {
 	async openView() {
 		// Create a new tab in the main editor for your view
 		const leaf = this.app.workspace.getLeaf(true);
-		const view = new TVTracker(leaf,this,this.settings.movieFolderPath,this.settings.imageFolderPath,this.settings.numberOfColumns,this.settings.numberOfResults,this.settings.toggleFittedImages,this.settings.apiKey, this.settings.topActorsNumber, this.settings.topGenresNumber,this.settings.topDirectorsNumber,this.settings.minMoviesForMetrics, this.settings.movieCardColor, this.settings.movieMetricsHeadingColor,this.settings.movieMetricsSubheadingColor, this.themeMode);
+		const view = new TVTracker(leaf,this,this.settings.movieFolderPath,this.settings.imageFolderPath,this.settings.numberOfColumns,this.settings.numberOfResults,this.settings.toggleFittedImages,this.settings.apiKey, this.settings.topActorsNumber, this.settings.topGenresNumber,this.settings.topDirectorsNumber,this.settings.minMoviesForMetrics, this.settings.movieCardColor, this.settings.movieMetricsHeadingColor,this.settings.movieMetricsSubheadingColor, this.themeMode, this.settings.metricsHeading);
 		leaf.setViewState({
 			type: VIEW_TV,
 			active: true,
@@ -253,6 +255,18 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 	}
 
 	addMetricSettings(containerEl: HTMLElement) {
+
+		new Setting(containerEl)
+		.setName('Name of Metrics')
+		.setDesc('Name for the heading where various metrics are shown')
+        .addText(text => text
+            .setValue(this.plugin.settings.metricsHeading)
+            .onChange(async (value) => {
+                this.plugin.settings.metricsHeading = value;
+                await this.plugin.saveSettings();
+            }));
+
+
 			new Setting(containerEl)
 		.setName('Number of Top Genres to show')
 		.setDesc('Number of Top Genres to show in Metrics')
