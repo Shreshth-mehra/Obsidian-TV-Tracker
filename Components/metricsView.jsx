@@ -314,7 +314,7 @@ const Metrics = ({ movies, topActorsNumber, topGenresNumber, topDirectorsNumber,
             <ExpandMoreIcon
               onClick={handleExpandClickTasteIndex}
               style={{
-                color: themeMode === 'dark' ? 'white' : 'inherit', transform: expandedDirectors ? 'rotate(0deg)' : 'rotate(270deg)',
+                color: themeMode === 'dark' ? 'white' : 'inherit', transform: expandedTasteIndex ? 'rotate(0deg)' : 'rotate(270deg)',
                 transition: 'transform 0.3s'
               }} />
             <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor, cursor: 'pointer' }} onClick={handleExpandClickTasteIndex}>Genre Taste Index:</Typography>
