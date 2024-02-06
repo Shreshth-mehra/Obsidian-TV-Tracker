@@ -2,7 +2,7 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import { TFile } from "obsidian";
 import MovieGrid from "./Components/GridView";
-import { Container, Typography, Box, Collapse } from "@mui/material";
+import { Container, Typography, Box, Collapse, Button } from "@mui/material";
 import Header from './Components/headerView';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -12,6 +12,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Metrics from './Components/metricsView';
 import { Platform } from "obsidian";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import DiscoverPopup from './Components/discoverView'
 
 
 
@@ -52,10 +53,17 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
   const [legendOpen, setLegendOpen] = useState(false);
   const [sortOption, setSortOption] = useState('Rating');
   const [sortOrder, setSortOrder] = useState('descending');
+  const [showDiscoverPopup, setShowDiscoverPopup] = useState(false);
   const [debugInfo, setDebugInfo] = useState('Should not be this');
 
 
   const isMobile = Platform.isMobile;
+
+  const openDiscoverPopup = () => setShowDiscoverPopup(true);
+
+  // Handler for closing the Discover popup
+  const closeDiscoverPopup = () => setShowDiscoverPopup(false);
+
 
 
   const handleGenreChange = (event) => {
@@ -242,6 +250,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
             }
           }}
         />
+        <Button variant="contained" onClick={openDiscoverPopup}>Discover</Button>
         <FormControlLabel
           control={
             <Checkbox
@@ -291,6 +300,15 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
       </Collapse>
 
       <Metrics movies={movies} topActorsNumber={topActorsNumber} topGenresNumber={topGenresNumber} topDirectorsNumber={topDirectorsNumber} minMoviesForMetrics={minMoviesForMetrics} movieMetricsHeadingColor={movieMetricsHeadingColor} movieMetricsSubheadingColor={movieMetricsSubheadingColor} themeMode={themeMode} metricsHeading={metricsHeading} />
+      <DiscoverPopup
+        open={showDiscoverPopup}
+        onClose={closeDiscoverPopup}
+        genres={genreList} // Pass the genre list
+        movies={movies}
+        themeMode={themeMode}
+        movieCardColor={movieCardColor}
+        apiKey={apiKey}
+      />
       <MovieGrid movies={filteredMovies.length > 0 ? filteredMovies : movies} selectedProperties={selectedProperties} numberOfColumns={numberOfColumns} toggleFittedImage={toggleFittedImages} movieCardColor={movieCardColor} />
     </Container>
   );
