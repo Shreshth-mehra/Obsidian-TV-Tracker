@@ -98,7 +98,13 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
         const avgVoteA = parseFloat(a['Avg vote']) || 0;
         const avgVoteB = parseFloat(b['Avg vote']) || 0;
         comparison = avgVoteA - avgVoteB;
+      } else if (sortOption === 'Hidden Gem factor') {
+        // Compute the ratio of Rating divided by Popularity for sorting
+        const ratioA = a.Rating / a.Popularity;
+        const ratioB = b.Rating / b.Popularity;
+        comparison = ratioA - ratioB;
       }
+
 
       return sortOrder === 'ascending' ? comparison : -comparison;
     });
@@ -250,7 +256,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
             }
           }}
         />
-        <Button variant="contained" onClick={openDiscoverPopup}>Discover</Button>
+
         <FormControlLabel
           control={
             <Checkbox
@@ -266,7 +272,9 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
         { flexGrow: 1, padding: '20px' }}>
         Showing {filteredMovies.length} results
       </Typography>
-
+      <Box style={{ padding: '10px' }}>
+        <Button variant="contained" onClick={openDiscoverPopup} style={{ color: 'inherit' }}>Discover</Button>
+      </Box>
       <Box display="flex" justifyContent="flex-start" alignItems="center">
         <ExpandMoreIcon onClick={handleExpandLegend}
           style={{

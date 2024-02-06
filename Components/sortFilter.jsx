@@ -30,6 +30,7 @@ const SortFilter = ({ sortOption, onSortChange, sortOrder, toggleSortOrder }) =>
           <MenuItem value="Rating">Rating</MenuItem>
           <MenuItem value="Alphabetical">Alphabetical</MenuItem>
           <MenuItem value="Avg vote">Avg Vote</MenuItem>
+          <MenuItem value="Hidden Gem factor">Hidden Gem factor</MenuItem>
         </Select>
       </FormControl>
 

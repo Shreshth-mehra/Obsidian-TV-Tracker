@@ -113,7 +113,8 @@ const DiscoverPopup = ({ open, onClose, genres, movies, themeMode, movieCardColo
                     title: recommendation.title || recommendation.name, // Depending on movie or TV series
                     backdropPath: backdrop_path,
                     overview: overview,
-                    voteCount: vote_count
+                    voteCount: vote_count,
+                    watchlist: false
                 };
                 console.log(`New movie added to stats:`, statsObj[id]);
             }
@@ -139,7 +140,8 @@ const DiscoverPopup = ({ open, onClose, genres, movies, themeMode, movieCardColo
                     // If the movie is on the watchlist, increase its occurrences but don't exclude it
                     return {
                         ...recommendation,
-                        occurrences: recommendation.occurrences + 3
+                        occurrences: recommendation.occurrences + 3,
+                        watchlist: true
                     };
                 } else {
                     // If the movie has any status other than 'Watchlist', mark it to be excluded
@@ -235,7 +237,7 @@ const DiscoverPopup = ({ open, onClose, genres, movies, themeMode, movieCardColo
                 {!showResults ? (
                     <Container>
                         <Box sx={{ display: 'flex', flexDirection: 'Row', alignItems: 'center' }}>
-                            <FormControl variant="outlined" sx={{ width: isMobile ? '70%' : '10vw', '.MuiOutlinedInput-notchedOutline': { borderColor: 'inherit' } }}>
+                            <FormControl variant="outlined" sx={{ width: isMobile ? '50vw' : '10vw', '.MuiOutlinedInput-notchedOutline': { borderColor: 'inherit' } }}>
                                 <InputLabel sx={{ color: 'inherit' }}>Genres</InputLabel>
                                 <Select
                                     multiple
@@ -305,6 +307,8 @@ const DiscoverPopup = ({ open, onClose, genres, movies, themeMode, movieCardColo
                         <MovieCard
                             key={index}
                             movie={movie}
+                            type={selectedType}
+                            apiKey={apiKey}
                             onAddToWatchlist={(movie) => {
                                 // Handle adding the movie to the watchlist
                                 console.log("Adding to watchlist:", movie.title);
@@ -329,7 +333,7 @@ const DiscoverPopup = ({ open, onClose, genres, movies, themeMode, movieCardColo
                         <Grid container spacing={4}>
                             {filteredMovies.map((movie, index) => (
                                 <Grid item xs={12} sm={6} md={4} lg={2} key={index}> {/* Responsive grid items */}
-                                    <Card style={{ margin: 8, backgroundColor: movieCardColor, color: 'inherit', position: 'relative' }} onClick={() => handleMovieSelect(movie)}>
+                                    <Card style={{ margin: isMobile ? '2' : '8', backgroundColor: movieCardColor, color: 'inherit', position: 'relative' }} onClick={() => handleMovieSelect(movie)}>
 
                                         <CardMedia
                                             component="img"
