@@ -13,7 +13,6 @@ export class TVTracker extends ItemView {
         super(leaf);
         this.plugin = plugin;
         this.themeMode = themeMode;
-        this.metricsHeading = metricsHeading;
     }
 
     getViewType() {
@@ -42,11 +41,13 @@ export class TVTracker extends ItemView {
                     // Ensure the file is a markdown file
                     if (file instanceof TFile && file.extension === 'md') {
                         const cache = this.app.metadataCache.getFileCache(file);
-                        let movieInfo = {
-                            ...cache?.frontmatter,
-                            filePath: file.path
-                        };
-                        moviesData.push(movieInfo);
+                        if (cache?.frontmatter && cache.frontmatter["TMDB ID"]) {
+                            let movieInfo = {
+                                ...cache.frontmatter,
+                                filePath: file.path
+                            };
+                            moviesData.push(movieInfo);
+                        }
                     }
                 }
             }

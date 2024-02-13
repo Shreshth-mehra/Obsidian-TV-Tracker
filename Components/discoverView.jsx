@@ -21,17 +21,18 @@ const DiscoverPopup = ({ open, onClose, genres, movies, themeMode, movieCardColo
             if (movie.Status === 'Watchlist') {
                 return false;
             }
+            if (movie.Genre) {
+                const genreMatch = selectedGenres.reduce((acc, genre) => {
+                    if (selectedLogicalOperator === 'OR') {
+                        return acc || movie.Genre.split(', ').includes(genre);
+                    } else { // 'AND' logic
+                        return acc && movie.Genre.split(', ').includes(genre);
+                    }
+                }, selectedLogicalOperator === 'OR' ? false : true);
 
-            const genreMatch = selectedGenres.reduce((acc, genre) => {
-                if (selectedLogicalOperator === 'OR') {
-                    return acc || movie.Genre.split(', ').includes(genre);
-                } else { // 'AND' logic
-                    return acc && movie.Genre.split(', ').includes(genre);
-                }
-            }, selectedLogicalOperator === 'OR' ? false : true);
-
-            const matchesType = selectedType === movie.Type;
-            return genreMatch && matchesType;
+                const matchesType = selectedType === movie.Type;
+                return genreMatch && matchesType;
+            }
         });
 
         setFilteredMovies(filtered);

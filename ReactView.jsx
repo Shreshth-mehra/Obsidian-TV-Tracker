@@ -283,7 +283,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
             transition: 'transform 0.3s'
           }} />
 
-        <Typography onClick={handleExpandLegend} variant="h6" style={{ color: movieMetricsHeadingColor }}>Legend</Typography>
+        <Typography onClick={handleExpandLegend} variant="h6" style={{ color: plugin.settings.movieMetricsHeadingColor }}>Legend</Typography>
       </Box>
       <Collapse in={legendOpen} timeout="auto" unmountOnExit>
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -308,15 +308,15 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
         </Box>
       </Collapse>
 
-      <Metrics movies={movies} topActorsNumber={plugin.settings.topActorsNumber} topGenresNumber={plugin.settings.topGenresNumber} topDirectorsNumber={plugin.settings.topDirectorsNumber} minMoviesForMetrics={plugin.settings.minMoviesForMetrics} movieMetricsHeadingColor={plugin.settings.movieMetricsHeadingColor} movieMetricsSubheadingColor={plugin.settings.movieMetricsSubheadingColor} themeMode={themeMode} metricsHeading={metricsHeading} />
+      <Metrics movies={movies} topActorsNumber={plugin.settings.topActorsNumber} topGenresNumber={plugin.settings.topGenresNumber} topDirectorsNumber={plugin.settings.topDirectorsNumber} minMoviesForMetrics={plugin.settings.minMoviesForMetrics} movieMetricsHeadingColor={plugin.settings.movieMetricsHeadingColor} movieMetricsSubheadingColor={plugin.settings.movieMetricsSubheadingColor} themeMode={themeMode} metricsHeading={plugin.settings.metricsHeading} />
       <DiscoverPopup
         open={showDiscoverPopup}
         onClose={closeDiscoverPopup}
         genres={genreList} // Pass the genre list
         movies={movies}
         themeMode={themeMode}
-        movieCardColor={movieCardColor}
-        apiKey={apiKey}
+        movieCardColor={plugin.settings.movieCardColor}
+        apiKey={plugin.settings.apiKey}
       />
       <MovieGrid movies={filteredMovies.length > 0 ? filteredMovies : movies} selectedProperties={selectedProperties} numberOfColumns={plugin.settings.numberOfColumns} toggleFittedImage={plugin.settings.toggleFittedImages} movieCardColor={plugin.settings.movieCardColor} plugin={plugin} />
     </Container>
