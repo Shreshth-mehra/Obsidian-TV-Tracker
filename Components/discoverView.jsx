@@ -13,6 +13,7 @@ const DiscoverPopup = ({ open, onClose, genres, movies, themeMode, movieCardColo
     const [selectedLogicalOperator, setSelectedLogicalOperator] = useState('OR');
     const [recommendations, setRecommendations] = useState([]);
     const [showRecommendations, setShowRecommendations] = useState(false);
+    const [selectedCountry, setSelectedCountry] = useState('CA');
 
     const applyFilters = () => {
         const filtered = movies.filter(movie => {
@@ -69,7 +70,7 @@ const DiscoverPopup = ({ open, onClose, genres, movies, themeMode, movieCardColo
                         console.log(`No recommendations found for movie ${index + 1}`);
                     }
                 });
-                console.log(allRecommendations);
+
                 // Process the recommendations to count occurrences and calculate average rating and popularity
                 const movieStats = processRecommendations(allRecommendations);
                 const uniqueRecommendations = filterRecommendations(movieStats);
@@ -79,7 +80,7 @@ const DiscoverPopup = ({ open, onClose, genres, movies, themeMode, movieCardColo
                 const sortedMovies = sortMovies(uniqueRecommendations);
 
                 // Log the top 10 movies
-                console.log(sortedMovies.slice(0, 10));
+                // console.log(sortedMovies.slice(0, 10));
                 setRecommendations(sortedMovies.slice(0, 10));
                 setShowRecommendations(true);
             } catch (error) {
@@ -234,8 +235,10 @@ const DiscoverPopup = ({ open, onClose, genres, movies, themeMode, movieCardColo
         }}>
             <DialogTitle>{showResults ? 'What are you in mood for? Please select' : 'Discover'}</DialogTitle>
             <DialogContent>
+
                 {!showResults ? (
                     <Container>
+
                         <Box sx={{ display: 'flex', flexDirection: 'Row', alignItems: 'center' }}>
                             <FormControl variant="outlined" sx={{ width: isMobile ? '50vw' : '10vw', '.MuiOutlinedInput-notchedOutline': { borderColor: 'inherit' } }}>
                                 <InputLabel sx={{ color: 'inherit' }}>Genres</InputLabel>
@@ -314,6 +317,7 @@ const DiscoverPopup = ({ open, onClose, genres, movies, themeMode, movieCardColo
                                 console.log("Adding to watchlist:", movie.title);
                                 // Potentially update state or call an API here
                             }}
+
                         />
                     ))}
                 </Box>
@@ -371,6 +375,22 @@ const DiscoverPopup = ({ open, onClose, genres, movies, themeMode, movieCardColo
 
             </DialogContent>
             <DialogActions>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', padding: 2 }}>
+                    <FormControl variant="outlined" size="small">
+                        <InputLabel>Country for Available on</InputLabel>
+                        <Select
+                            value={selectedCountry}
+                            onChange={(e) => setSelectedCountry(e.target.value)}
+                            label="Country"
+                        >
+                            {/* Populate this Select with countries as needed */}
+                            <MenuItem value="US">United States</MenuItem>
+                            <MenuItem value="CA">Canada</MenuItem>
+                            <MenuItem value="IN">India</MenuItem>
+                            {/* Add more countries here */}
+                        </Select>
+                    </FormControl>
+                </Box>
                 {showResults && (
                     <Button onClick={() => {
                         resetStates();

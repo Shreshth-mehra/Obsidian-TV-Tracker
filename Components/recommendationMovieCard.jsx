@@ -92,6 +92,9 @@ const MovieCard = ({ movie, onAddToWatchlist, type, apiKey }) => {
                         </a>
                     </Typography>
                 )}
+                {/* <Typography variant="body2" sx={{ color: 'inherit', paddingTop: '10px' }} >
+                    Available On: {movie.availableOn}
+                </Typography> */}
                 {castList.length > 0 && (
                     <Typography variant="body2" sx={{ color: 'inherit', paddingTop: '10px' }}>
                         Cast: {castList.map((cast, index) => (

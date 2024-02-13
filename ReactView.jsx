@@ -14,6 +14,20 @@ import { Platform } from "obsidian";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DiscoverPopup from './Components/discoverView'
 
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 
 
 
@@ -39,7 +53,7 @@ const genreList = [
   { "id": 37, "name": "Western" }
 ];
 
-export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, numberOfResults, toggleFittedImages, apiKey, topActorsNumber, topGenresNumber, topDirectorsNumber, minMoviesForMetrics, movieCardColor, movieMetricsHeadingColor, movieMetricsSubheadingColor, themeMode, metricsHeading }) => {
+export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, numberOfResults, toggleFittedImages, apiKey, topActorsNumber, topGenresNumber, topDirectorsNumber, minMoviesForMetrics, movieCardColor, movieMetricsHeadingColor, movieMetricsSubheadingColor, themeMode, metricsHeading, plugin }) => {
   // Change movie state to movies, which will be an array
   const [movies, setMovies] = useState([moviesData || []]);
   const [filteredMovies, setFilteredMovies] = useState([]);
@@ -56,6 +70,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
   const [showDiscoverPopup, setShowDiscoverPopup] = useState(false);
   const [debugInfo, setDebugInfo] = useState('Should not be this');
 
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const isMobile = Platform.isMobile;
 
@@ -121,15 +136,9 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
 
     const propertiesSet = new Set();
 
-    // console.log("Logging moviesData:");
-    // moviesData.forEach((movie, index) => {
-    //   console.log(`Movie ${index}:`, movie);
-    // });
-
     setMovies(moviesData);
     movies.forEach(movie => {
-      // console.log("humpty dumpty");
-      // console.log(movie);
+
       Object.keys(movie).forEach(key => propertiesSet.add(key));
     });
     setMovieProperties(Array.from(propertiesSet));
@@ -137,7 +146,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
     // getYAMLforMovies();
     applyFilters();
 
-  }, [movies, selectedGenres, selectedTypes, selectedRating, searchTerm, sortOption, showWatchlist, sortOrder]);
+  }, [movies, selectedGenres, selectedTypes, selectedRating, debouncedSearchTerm, sortOption, showWatchlist, sortOrder]);
 
   const handlePropertyChange = (event) => {
     const {
@@ -154,8 +163,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
 
   const handleSortChange = (event) => {
     const sort = event.target.value;
-    // console.log("SOrt is ");
-    // console.log(sort);
+
     setSortOption(sort);
   };
 
@@ -165,7 +173,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
 
 
   const applyFilters = () => {
-    const lowerCaseSearchTerm = searchTerm.toLowerCase();
+    const lowerCaseSearchTerm = debouncedSearchTerm.toLowerCase();
 
 
     const filtered = movies.filter(movie => {
@@ -317,7 +325,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
         movieCardColor={movieCardColor}
         apiKey={apiKey}
       />
-      <MovieGrid movies={filteredMovies.length > 0 ? filteredMovies : movies} selectedProperties={selectedProperties} numberOfColumns={numberOfColumns} toggleFittedImage={toggleFittedImages} movieCardColor={movieCardColor} />
+      <MovieGrid movies={filteredMovies.length > 0 ? filteredMovies : movies} selectedProperties={selectedProperties} numberOfColumns={numberOfColumns} toggleFittedImage={toggleFittedImages} movieCardColor={movieCardColor} plugin={plugin} />
     </Container>
   );
 };

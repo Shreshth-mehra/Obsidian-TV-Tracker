@@ -57,7 +57,11 @@ export class TVTracker extends ItemView {
 
             for (let file of folderFiles) {
                 const cache = this.app.metadataCache.getFileCache(file);
-                moviesData.push(cache?.frontmatter);
+                let movieInfo = {
+                    ...cache?.frontmatter,
+                    filePath: file.path
+                };
+                moviesData.push(movieInfo);
             }
 
             debugInfo = `folderFiles size; ${folderFiles.length}`
@@ -65,7 +69,7 @@ export class TVTracker extends ItemView {
             const root = createRoot(this.containerEl.children[1]);
             root.render(
                 <React.StrictMode>
-                    <ReactView moviesData={moviesData} createMarkdownFile={this.createMarkdownFile} numberOfColumns={this.numberOfColumns} numberOfResults={this.numberOfResults} toggleFittedImages={this.toggleFittedImages} apiKey={this.apiKey} topActorsNumber={this.topActorsNumber} topGenresNumber={this.topGenresNumber} topDirectorsNumber={this.topDirectorsNumber} minMoviesForMetrics={this.minMoviesForMetrics} movieCardColor={this.movieCardColor} movieMetricsHeadingColor={this.movieMetricsHeadingColor} movieMetricsSubheadingColor={this.movieMetricsSubheadingColor} themeMode={this.themeMode} metricsHeading={this.metricsHeading} />
+                    <ReactView moviesData={moviesData} createMarkdownFile={this.createMarkdownFile} numberOfColumns={this.numberOfColumns} numberOfResults={this.numberOfResults} toggleFittedImages={this.toggleFittedImages} apiKey={this.apiKey} topActorsNumber={this.topActorsNumber} topGenresNumber={this.topGenresNumber} topDirectorsNumber={this.topDirectorsNumber} minMoviesForMetrics={this.minMoviesForMetrics} movieCardColor={this.movieCardColor} movieMetricsHeadingColor={this.movieMetricsHeadingColor} movieMetricsSubheadingColor={this.movieMetricsSubheadingColor} themeMode={this.themeMode} metricsHeading={this.metricsHeading} plugin={this.plugin} />
                 </React.StrictMode>
             );
         } catch (error) {
