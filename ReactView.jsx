@@ -1,6 +1,5 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { TFile } from "obsidian";
 import MovieGrid from "./Components/GridView";
 import { Container, Typography, Box } from "@mui/material";
 import Header from './Components/headerView';
@@ -37,7 +36,7 @@ const genreList = [
   { "id": 37, "name": "Western" }
 ];
 
-export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, numberOfResults, toggleFittedImages, apiKey, topActorsNumber, topGenresNumber, topDirectorsNumber, minMoviesForMetrics, movieCardColor, movieMetricsHeadingColor, movieMetricsSubheadingColor, themeMode }) => {
+export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin }) => {
   // Change movie state to movies, which will be an array
   const [movies, setMovies] = useState([moviesData || []]);
   const [filteredMovies, setFilteredMovies] = useState([]);
@@ -101,24 +100,15 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
 
   useEffect(() => {
 
-
-
     const propertiesSet = new Set();
-
-    // console.log("Logging moviesData:");
-    // moviesData.forEach((movie, index) => {
-    //   console.log(`Movie ${index}:`, movie);
-    // });
 
     setMovies(moviesData);
     movies.forEach(movie => {
-      // console.log("humpty dumpty");
-      // console.log(movie);
+
       Object.keys(movie).forEach(key => propertiesSet.add(key));
     });
     setMovieProperties(Array.from(propertiesSet));
 
-    // getYAMLforMovies();
     applyFilters();
 
   }, [movies, selectedGenres, selectedTypes, selectedRating, searchTerm, sortOption, showWatchlist, sortOrder]);
@@ -138,8 +128,6 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
 
   const handleSortChange = (event) => {
     const sort = event.target.value;
-    // console.log("SOrt is ");
-    // console.log(sort);
     setSortOption(sort);
   };
 
@@ -168,7 +156,6 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
 
     const sortedMovies = sortMovies(filtered);
     setFilteredMovies(sortedMovies);
-    // setFilteredMovies(filtered);
   };
 
   // Check if movies are still being fetched
@@ -194,13 +181,12 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
         selectedTypes={selectedTypes}
         handleTypeChange={handleTypeChange}
         createMarkdownFile={createMarkdownFile}
-        numberOfResults={numberOfResults}
-        apiKey={apiKey}
         toggleSortOrder={toggleSortOrder}
         sortOption={sortOption}
         sortOrder={sortOrder}
         handleSortChange={handleSortChange}
         themeMode={themeMode}
+        plugin={plugin}
       />
       <Box style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <TextField
@@ -253,8 +239,8 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
         { flexGrow: 1, padding: '20px' }}>
         Showing {filteredMovies.length} results
       </Typography>
-      <Metrics movies={movies} topActorsNumber={topActorsNumber} topGenresNumber={topGenresNumber} topDirectorsNumber={topDirectorsNumber} minMoviesForMetrics={minMoviesForMetrics} movieMetricsHeadingColor={movieMetricsHeadingColor} movieMetricsSubheadingColor={movieMetricsSubheadingColor} themeMode={themeMode} />
-      <MovieGrid movies={filteredMovies.length > 0 ? filteredMovies : movies} selectedProperties={selectedProperties} numberOfColumns={numberOfColumns} toggleFittedImage={toggleFittedImages} movieCardColor={movieCardColor} />
+      <Metrics movies={movies} topActorsNumber={plugin.settings.topActorsNumber} topGenresNumber={plugin.settings.topGenresNumber} topDirectorsNumber={plugin.settings.topDirectorsNumber} minMoviesForMetrics={plugin.settings.minMoviesForMetrics} movieMetricsHeadingColor={plugin.settings.movieMetricsHeadingColor} movieMetricsSubheadingColor={plugin.settings.movieMetricsSubheadingColor} themeMode={themeMode} />
+      <MovieGrid movies={filteredMovies.length > 0 ? filteredMovies : movies} selectedProperties={selectedProperties} numberOfColumns={plugin.settings.numberOfColumns} toggleFittedImage={plugin.settings.toggleFittedImages} movieCardColor={plugin.settings.movieCardColor} />
     </Container>
   );
 };
