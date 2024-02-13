@@ -1,6 +1,6 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, Plugin, PluginSettingTab, Setting} from 'obsidian';
 import { TVTracker,VIEW_TV } from 'view';
-// Remember to rename these classes and interfaces!
+
 
 interface TVTrackerSettings {
 	
@@ -22,18 +22,18 @@ interface TVTrackerSettings {
 
 const DEFAULT_TV_SETTINGS: TVTrackerSettings = {
 	
-	movieFolderPath: '/Movies',
+	movieFolderPath: 'Movies',
 	numberOfColumns: 6,               
     numberOfResults: 3,               
     toggleFittedImages: true,         
-    imageFolderPath: '/Movies/Images',
+    imageFolderPath: 'Movies/Images',
 	apiKey :'' ,
 	topActorsNumber:5,
 	topDirectorsNumber:5,
 	topGenresNumber:5,
 	minMoviesForMetrics:7,
-	movieMetricsHeadingColor: 'lightblue', // Default to black
-    movieMetricsSubheadingColor: 'orange', // Default to dark grey
+	movieMetricsHeadingColor: 'lightblue', 
+    movieMetricsSubheadingColor: 'orange', 
 	movieCardColor: 'inherit',
 	metricsHeading: 'For Number geeks'
 
@@ -52,17 +52,14 @@ export default class TVTrackerPlugin extends Plugin {
 			this.themeMode = 'dark';
 		}
 
-		this.registerView(VIEW_TV, (leaf) => new TVTracker(leaf,this,this.settings.movieFolderPath, this.settings.imageFolderPath,this.settings.numberOfColumns,this.settings.numberOfResults,this.settings.toggleFittedImages, this.settings.apiKey, this.settings.topActorsNumber, this.settings.topGenresNumber,this.settings.topDirectorsNumber,this.settings.minMoviesForMetrics, this.settings.movieCardColor, this.settings.movieMetricsHeadingColor,this.settings.movieMetricsSubheadingColor, this.themeMode, this.settings.metricsHeading));
-		// console.log(this.settings.movieFolderPath);
+		this.registerView(VIEW_TV, (leaf) => new TVTracker(leaf,this, this.themeMode));
 		this.addRibbonIcon('star','Open TV Tracker', ()=>  {
 			this.activateView();
-			// this.openView();
+	
 		});
 
 		this.addSettingTab(new TVTrackerSettingsTab(this.app, this));
 		
-
-// console.log("The current theme mode is:", this.themeMode);
 	}
 	onunload() {
 
@@ -71,7 +68,7 @@ export default class TVTrackerPlugin extends Plugin {
 	async openView() {
 		// Create a new tab in the main editor for your view
 		const leaf = this.app.workspace.getLeaf(true);
-		const view = new TVTracker(leaf,this,this.settings.movieFolderPath,this.settings.imageFolderPath,this.settings.numberOfColumns,this.settings.numberOfResults,this.settings.toggleFittedImages,this.settings.apiKey, this.settings.topActorsNumber, this.settings.topGenresNumber,this.settings.topDirectorsNumber,this.settings.minMoviesForMetrics, this.settings.movieCardColor, this.settings.movieMetricsHeadingColor,this.settings.movieMetricsSubheadingColor, this.themeMode, this.settings.metricsHeading);
+		const view = new TVTracker(leaf,this, this.themeMode);
 		leaf.setViewState({
 			type: VIEW_TV,
 			active: true,
@@ -81,15 +78,21 @@ export default class TVTrackerPlugin extends Plugin {
 
 
 	async activateView(){
-		this.app.workspace.detachLeavesOfType(VIEW_TV);
+	
+		const existingLeaves = this.app.workspace.getLeavesOfType(VIEW_TV);
+	
+		if(existingLeaves.length === 0){
+			// If there is no leaf of VIEW_TV type, create a new one
+			await this.app.workspace.getLeaf(false).setViewState({
+				type:VIEW_TV,
+				active:true,
+			});
 
-		await this.app.workspace.getLeaf(false).setViewState({
-			type:VIEW_TV,
-			active:true,
-		});
-
-		this.app.workspace.revealLeaf(this.app.workspace.getLeavesOfType(VIEW_TV)[0]
-		);
+		this.app.workspace.revealLeaf(this.app.workspace.getLeavesOfType(VIEW_TV)[0]);
+	} else {
+        // If a leaf of VIEW_TV type already exists, simply reveal it without creating a new one
+        this.app.workspace.revealLeaf(existingLeaves[0]);
+    }
 	}
 
 	async loadSettings() {
@@ -116,7 +119,7 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-		.setName('Folder Path')
+		.setName('Folder path')
 		.setDesc('Path to the folder where all content is stored.')
 		.addText(text => text
 			.setValue(this.plugin.settings.movieFolderPath)
@@ -125,10 +128,10 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 				await this.plugin.saveSettings();
 			}));
 
-	// API Key Setting
+
 	new Setting(containerEl)
-		.setName('TMDB API Key')
-		.setDesc('Your TMDB API Key. https://www.themoviedb.org/ ')
+		.setName('TMDB API key')
+		.setDesc('Your TMDB API key. https://www.themoviedb.org/ ')
 		.addText(text => text
 			.setValue(this.plugin.settings.apiKey)
 			.onChange(async (value) => {
@@ -137,7 +140,7 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 			}));
 
 			new Setting(containerEl)
-			.setName('Number of Results to Show')
+			.setName('Number of results to show')
 			.setDesc('Number of results to display for add new')
 			.addText(text => text
 				.setValue(String(this.plugin.settings.numberOfResults))
@@ -147,7 +150,7 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 				}));
 
 			new Setting(containerEl)
-			.setName('Folder Path for Saving Images')
+			.setName('Folder path for saving Images')
 			.setDesc('Folder path for saving images. Functionality not completed yet')
 			.addText(text => text
 				.setValue(this.plugin.settings.imageFolderPath)
@@ -162,19 +165,17 @@ class TVTrackerSettingsTab extends PluginSettingTab {
     this.addStyleSettings(styleSettingsContainer);
 
 
-    let metricSettingsContainer = this.addSectionHeader(containerEl, 'Movie Metrics', 'metric-settings');
+    let metricSettingsContainer = this.addSectionHeader(containerEl, 'Metrics', 'metric-settings');
     this.addMetricSettings(metricSettingsContainer);
 	}
 
 	addSectionHeader(containerEl: HTMLElement, title: string, id: string) {
 		const header = containerEl.createEl('div', { cls: 'settings-section-header' });
 		const headerTitle = containerEl.createEl('h3', { text: title });
-	
-		// Create a container for the section content
+
 		const contentContainer = containerEl.createDiv();
 		contentContainer.id = id;
-	
-		// Append title to the header (no icon is appended since there's no toggle functionality)
+
 		header.appendChild(headerTitle);
 	
 		return contentContainer;
@@ -184,7 +185,7 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 	addStyleSettings(containerEl: HTMLElement) {
 
 		new Setting(containerEl)
-        .setName('Background color for Movie cards')
+        .setName('Background color for movie cards')
         .setDesc('Enter as a hex code. Leaving as inherit will use Obsidian global settings based on Light or dark theme')
         .addText(text => text
             .setValue(this.plugin.settings.movieCardColor)
@@ -193,9 +194,9 @@ class TVTrackerSettingsTab extends PluginSettingTab {
                 await this.plugin.saveSettings();
             }));
 
-    // Color for Movie Metrics Subheadings Setting
+   
     new Setting(containerEl)
-        .setName('Color for Movie Metrics Subheadings')
+        .setName('Color for movie metrics subheadings')
         .setDesc('Enter as a hex code. Choose a color for the movie metrics subheadings.')
         .addText(text => text
             .setValue(this.plugin.settings.movieMetricsSubheadingColor)
@@ -204,9 +205,9 @@ class TVTrackerSettingsTab extends PluginSettingTab {
                 await this.plugin.saveSettings();
             }));
 
-    // Theme Setting
+   
 	new Setting(containerEl)
-        .setName('Color for Movie Metrics Heading')
+        .setName('Color for movie metrics heading')
         .setDesc('Enter as a hex code. Choose a color for the movie metrics heading.')
         .addText(text => text
             .setValue(this.plugin.settings.movieMetricsHeadingColor)
@@ -216,7 +217,7 @@ class TVTrackerSettingsTab extends PluginSettingTab {
             }));
 
 		new Setting(containerEl)
-				.setName('Toggle Fitted Images')
+				.setName('Toggle fitted images')
 				.setDesc('Toggle button for fitted images')
 				.addToggle(toggle => toggle
 					.setValue(this.plugin.settings.toggleFittedImages)
@@ -227,7 +228,7 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 
 
 				new Setting(containerEl)
-				.setName('Number of Columns')
+				.setName('Number of columns')
 				.setDesc('Number of columns for the grid (Minimum: 2, Maximum: 6). Note: this setting has no effect in mobile.')
 				.addText(text => text
 					.setValue(String(this.plugin.settings.numberOfColumns))
@@ -248,7 +249,7 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 						}
 			
 						this.plugin.settings.numberOfColumns = numColumns;
-						text.setValue(String(numColumns)); // Update the input field with the valid value
+						text.setValue(String(numColumns)); 
 						await this.plugin.saveSettings();
 					}));
 
@@ -268,8 +269,8 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 
 
 			new Setting(containerEl)
-		.setName('Number of Top Genres to show')
-		.setDesc('Number of Top Genres to show in Metrics')
+		.setName('Number of top genres to show')
+		.setDesc('Number of top genres to show in metrics')
 		.addText(text => text
 			.setValue(String(this.plugin.settings.topGenresNumber))
 			.onChange(async (value) => {
@@ -278,8 +279,8 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 			}));
 
 			new Setting(containerEl)
-			.setName('Number of Top Directors to show')
-			.setDesc('Number of Top D to show in Metrics')
+			.setName('Number of top directors to show')
+			.setDesc('Number of top directors to show in metrics')
 			.addText(text => text
 				.setValue(String(this.plugin.settings.topDirectorsNumber))
 				.onChange(async (value) => {
@@ -288,8 +289,8 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 				}));
 
 			new Setting(containerEl)
-		.setName('Minimum number of movies for Metric ')
-		.setDesc('Minimum number of movie for an Actor for Avg rating based metrics')
+		.setName('Minimum number of movies for metric ')
+		.setDesc('Minimum number of movie for an actor for avg rating based metrics')
 		.addText(text => text
 			.setValue(String(this.plugin.settings.minMoviesForMetrics))
 			.onChange(async (value) => {
@@ -298,8 +299,8 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 			}));
 
 			new Setting(containerEl)
-			.setName('Number of Top Actors to show')
-			.setDesc('Number of Top Actors to show in Metrics')
+			.setName('Number of top actors to show')
+			.setDesc('Number of top actors to show in metrics')
 			.addText(text => text
 				.setValue(String(this.plugin.settings.topActorsNumber))
 				.onChange(async (value) => {

@@ -1,6 +1,5 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { TFile } from "obsidian";
 import MovieGrid from "./Components/GridView";
 import { Container, Typography, Box, Collapse, Button } from "@mui/material";
 import Header from './Components/headerView';
@@ -53,7 +52,7 @@ const genreList = [
   { "id": 37, "name": "Western" }
 ];
 
-export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, numberOfResults, toggleFittedImages, apiKey, topActorsNumber, topGenresNumber, topDirectorsNumber, minMoviesForMetrics, movieCardColor, movieMetricsHeadingColor, movieMetricsSubheadingColor, themeMode, metricsHeading, plugin }) => {
+export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin }) => {
   // Change movie state to movies, which will be an array
   const [movies, setMovies] = useState([moviesData || []]);
   const [filteredMovies, setFilteredMovies] = useState([]);
@@ -132,8 +131,6 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
 
   useEffect(() => {
 
-
-
     const propertiesSet = new Set();
 
     setMovies(moviesData);
@@ -143,7 +140,6 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
     });
     setMovieProperties(Array.from(propertiesSet));
 
-    // getYAMLforMovies();
     applyFilters();
 
   }, [movies, selectedGenres, selectedTypes, selectedRating, debouncedSearchTerm, sortOption, showWatchlist, sortOrder]);
@@ -163,7 +159,6 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
 
   const handleSortChange = (event) => {
     const sort = event.target.value;
-
     setSortOption(sort);
   };
 
@@ -195,7 +190,6 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
 
     const sortedMovies = sortMovies(filtered);
     setFilteredMovies(sortedMovies);
-    // setFilteredMovies(filtered);
   };
 
   // Check if movies are still being fetched
@@ -221,13 +215,12 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
         selectedTypes={selectedTypes}
         handleTypeChange={handleTypeChange}
         createMarkdownFile={createMarkdownFile}
-        numberOfResults={numberOfResults}
-        apiKey={apiKey}
         toggleSortOrder={toggleSortOrder}
         sortOption={sortOption}
         sortOrder={sortOrder}
         handleSortChange={handleSortChange}
         themeMode={themeMode}
+        plugin={plugin}
       />
       <Box style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <TextField
@@ -315,7 +308,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
         </Box>
       </Collapse>
 
-      <Metrics movies={movies} topActorsNumber={topActorsNumber} topGenresNumber={topGenresNumber} topDirectorsNumber={topDirectorsNumber} minMoviesForMetrics={minMoviesForMetrics} movieMetricsHeadingColor={movieMetricsHeadingColor} movieMetricsSubheadingColor={movieMetricsSubheadingColor} themeMode={themeMode} metricsHeading={metricsHeading} />
+      <Metrics movies={movies} topActorsNumber={plugin.settings.topActorsNumber} topGenresNumber={plugin.settings.topGenresNumber} topDirectorsNumber={plugin.settings.topDirectorsNumber} minMoviesForMetrics={plugin.settings.minMoviesForMetrics} movieMetricsHeadingColor={plugin.settings.movieMetricsHeadingColor} movieMetricsSubheadingColor={plugin.settings.movieMetricsSubheadingColor} themeMode={themeMode} metricsHeading={metricsHeading} />
       <DiscoverPopup
         open={showDiscoverPopup}
         onClose={closeDiscoverPopup}
@@ -325,7 +318,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, numberOfColumns, num
         movieCardColor={movieCardColor}
         apiKey={apiKey}
       />
-      <MovieGrid movies={filteredMovies.length > 0 ? filteredMovies : movies} selectedProperties={selectedProperties} numberOfColumns={numberOfColumns} toggleFittedImage={toggleFittedImages} movieCardColor={movieCardColor} plugin={plugin} />
+      <MovieGrid movies={filteredMovies.length > 0 ? filteredMovies : movies} selectedProperties={selectedProperties} numberOfColumns={plugin.settings.numberOfColumns} toggleFittedImage={plugin.settings.toggleFittedImages} movieCardColor={plugin.settings.movieCardColor} plugin={plugin} />
     </Container>
   );
 };

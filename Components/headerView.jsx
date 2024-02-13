@@ -14,11 +14,11 @@ import SortFilter from './sortFilter';
 import AddNew from './addNew';
 import MovieTypeFilter from './typeFilter';
 import MovieSelectPopUp from './movieSelectPopUp';
-import { Platform } from "obsidian";
+import { Platform, requestUrl } from "obsidian";
 
 
 
-const Header = ({ movieProperties, selectedProperties, handlePropertyChange, selectedRating, handleRatingChange, genres, selectedGenres, handleGenreChange, selectedTypes, handleTypeChange, createMarkdownFile, numberOfResults, apiKey, handleSortChange, sortOption, sortOrder, toggleSortOrder, themeMode }) => {
+const Header = ({ movieProperties, selectedProperties, handlePropertyChange, selectedRating, handleRatingChange, genres, selectedGenres, handleGenreChange, selectedTypes, handleTypeChange, createMarkdownFile, handleSortChange, sortOption, sortOrder, toggleSortOrder, themeMode, plugin }) => {
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -38,26 +38,29 @@ const Header = ({ movieProperties, selectedProperties, handlePropertyChange, sel
   const handleAddMovie = async (movieData) => {
     setSelectedMovieState(movieData);
 
-    // const apiKey = '71d4b5e2d6b7392e1dfe6185576b9764'; // Replace with your TMDB API key
     const searchType = movieData.type === 'Series' ? 'tv' : 'movie';
 
     try {
-      const searchUrl = `https://api.themoviedb.org/3/search/${searchType}?api_key=${apiKey}&query=${encodeURIComponent(movieData.name)}`;
-      const searchResponse = await fetch(searchUrl);
-      if (searchResponse.status === 401) {
-        handleErrorOpen();
-        return;
-      }
-      const searchData = await searchResponse.json();
+      const searchUrl = `https://api.themoviedb.org/3/search/${searchType}?api_key=${plugin.settings.apiKey}&query=${encodeURIComponent(movieData.name)}`;
+      const searchResponse = await requestUrl({
+        url: searchUrl,
+        method: 'GET',
+      });
+
+
+      const searchData = await searchResponse.json;
 
       if (searchData.results && searchData.results.length > 0) {
-        setSearchResults(searchData.results.slice(0, numberOfResults)); // Save top 3 results
+        setSearchResults(searchData.results.slice(0, plugin.settings.numberOfResults));
         setSelectionDialogOpen(true); // Open the selection dialog
       } else {
         console.log(`No results found for ${movieData.type}:`, movieData.name);
       }
     } catch (error) {
       console.error(`Error fetching ${movieData.type} details:`, error);
+
+      handleErrorOpen();
+
     }
   };
 
@@ -65,32 +68,27 @@ const Header = ({ movieProperties, selectedProperties, handlePropertyChange, sel
     setSelectionDialogOpen(false); // Close the dialog
     setSearchResults([]); // Clear the search results
 
-    // const apiKey = '71d4b5e2d6b7392e1dfe6185576b9764'; // Replace with your TMDB API key
     const isTvShow = selectedItem.first_air_date !== undefined;
     const detailsType = isTvShow ? 'tv' : 'movie';
 
     try {
       // Fetch detailed movie information for the selected movie
-      const detailsUrl = `https://api.themoviedb.org/3/${detailsType}/${selectedItem.id}?api_key=${apiKey}`;
-      const detailsResponse = await fetch(detailsUrl);
-      const detailsData = await detailsResponse.json();
+      const detailsUrl = `https://api.themoviedb.org/3/${detailsType}/${selectedItem.id}?api_key=${plugin.settings.apiKey}`;
+      const detailsResponse = await requestUrl({
+        url: detailsUrl,
+        method: 'GET',
+      });
+      const detailsData = await detailsResponse.json;
 
 
-      // Logging the relevant data
-      console.log("Title:", detailsData.title);
-      console.log("Poster URL:", `https://image.tmdb.org/t/p/original${detailsData.poster_path}`);
-      console.log("Genres:", detailsData.genres.map(genre => genre.name).join(', '));
-      console.log("Duration:", detailsData.runtime, "minutes");
-      console.log("Average Vote:", detailsData.vote_average);
-      console.log("Popularity:", detailsData.popularity);
-
-      // If you want to fetch credits (cast members) as well
-      const creditsUrl = `https://api.themoviedb.org/3/${detailsType}/${selectedItem.id}/credits?api_key=${apiKey}`;
-      const creditsResponse = await fetch(creditsUrl);
-      const creditsData = await creditsResponse.json();
+      const creditsUrl = `https://api.themoviedb.org/3/${detailsType}/${selectedItem.id}/credits?api_key=${plugin.settings.apiKey}`;
+      const creditsResponse = await requestUrl({
+        url: creditsUrl,
+        method: 'GET',
+      });
+      const creditsData = await creditsResponse.json;
       const directors = creditsData.crew.filter(member => member.job === 'Director').map(director => director.name).join(', ');
-      console.log("Cast:", creditsData.cast.slice(0, 10).map(member => member.name).join(', '));
-      console.log("Director(s):", directors);
+
 
       const movieYAML = `---
 Title: "${detailsData.title || detailsData.name}" 
@@ -116,8 +114,6 @@ tags: "tvtracker, ${selectedMovieState.type}"
       console.error('Error processing the selected movie:', error);
     }
 
-    // Further processing for the selected movie
-    // ...
   };
 
   const handleOpenAddDialog = () => {

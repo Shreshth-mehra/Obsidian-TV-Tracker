@@ -14,8 +14,7 @@ const AddMovieDialog = ({ open, handleClose, handleAddMovie, themeMode }) => {
 
 
   const handleSubmit = () => {
-    // Here you would call the TMDB API to fetch movie details
-    // For now, we will just call handleAddMovie with the input values
+
     handleAddMovie({
       name: movieName,
       rating: movieRating,
