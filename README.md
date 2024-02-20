@@ -8,6 +8,13 @@ A simple Movie and TV show library to keep track of favourite movies and shows. 
 
 A template library of Movies and TV shows is available on request to play with the plugin.
 
+## Upcoming
+I have alreayd started work on the next update and am planning the following major changes 
+1. Discover New  - Helps you find what to watch based on your titles and rating
+2. Faster performance
+3. Improved metrics options and calculations
+4. Imporved UI scaling
+
 # Usage
 
 The Plugin is accesible as a 'Star' Ribbon icon. On clicking, this will open a new View called 'TV Tracker' with a Grid of all the movies and shows found in the specified path in the settings. The Header displays multiple options to sort and filter the content displayed. Please note that if search results are 0 then all titles are displayed. The header is hidden in a pop up on mobile app.
@@ -57,3 +64,9 @@ There are 13 configurable settings. The two most improtant ones are the TMDB API
 
 This product uses the TMDB API but is not endorsed or certified by TMDB. You will have to obtain your own personal TMDB API to use this plugin.The TMDB API is used for fetching all necessary details about each title including but not limited to Official title, poster, Cast members, Genre, Avg rating, Popularity etc.
 ![TMDB_Logo](https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_2-d537fb228cf3ded904ef09b136fe3fec72548ebc1fea3fbbd1ad9e36364db38b.svg)
+
+# Support
+
+If you enjoyed using this code or found it helpful, feel free to say thank you by buying me a coffee. https://www.buymeacoffee.com/shreshthmehra
+![image](https://github.com/Shreshth-mehra/Obsidian-TV-Tracker/assets/39000100/070b470b-5051-4d42-8be0-4b417acacc0a)
+ 
