@@ -2,6 +2,10 @@
 
 Movie and TV show tracker plugin for Obsidian
 
+# Ongoing Issue
+
+A current bug is under work where if the folder is empty then the plugin gets stuck at "Loading ...". Unfortunately this affects every new user. For the time being please copy paste 1 or more files from the Template library to the folder in your vault. This should allow the app to load and once you've added your own Movies/TV shows to the library you can remove the file/files you copy pasted. I expect this bug to be fixed within a couple days as soon as I get some time
+
 # Description
 
 A simple Movie and TV show library to keep track of favourite movies and shows. Each Movie and TV show is saved as a markdown file in a folder of your choice. Each file has YAML content which is used to Display, filter and sort content. This product uses the TMDB API but is not endorsed or certified by TMDB. The TMDB API is free for personal uses and requires a license for commercial use. To be able to add new Movies and TV shows you will need to get your personal API key from TMDB. Simply create an account at https://www.themoviedb.org/signup and get the API key. You will then have to enter your API key in the settings for this plugin.
@@ -9,8 +13,10 @@ A simple Movie and TV show library to keep track of favourite movies and shows. 
 A template library of Movies and TV shows is available on request to play with the plugin.
 
 ## Upcoming
-I have alreayd started work on the next update and am planning the following major changes 
-1. Discover New  - Helps you find what to watch based on your titles and rating
+
+I have alreayd started work on the next update and am planning the following major changes
+
+1. Discover New - Helps you find what to watch based on your titles and rating
 2. Faster performance
 3. Improved metrics options and calculations
 4. Imporved UI scaling
@@ -69,4 +75,3 @@ This product uses the TMDB API but is not endorsed or certified by TMDB. You wil
 
 If you enjoyed using this code or found it helpful, feel free to say thank you by buying me a coffee. https://www.buymeacoffee.com/shreshthmehra
 ![image](https://github.com/Shreshth-mehra/Obsidian-TV-Tracker/assets/39000100/070b470b-5051-4d42-8be0-4b417acacc0a)
- 
