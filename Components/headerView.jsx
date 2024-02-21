@@ -177,7 +177,7 @@ tags: "tvtracker, ${selectedMovieState.type}"
         <DialogTitle>{"Unauthorized Access"}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Please check your API key.
+            Please check your API key or internet connection.
           </DialogContentText>
         </DialogContent>
         <DialogActions>

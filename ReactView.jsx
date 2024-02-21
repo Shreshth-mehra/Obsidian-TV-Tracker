@@ -159,9 +159,9 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
   };
 
   // Check if movies are still being fetched
-  if (!movies || movies.length === 0) {
-    return <div>  Loading...</div>;
-  }
+  // if (!movies || movies.length === 0) {
+  //   return <div> No movie or tv show titles found in the folder {plugin.settings.movieFolderPath}</div>;
+  // }
 
   // Render each movie in the grid
   return (
@@ -240,6 +240,9 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
         Showing {filteredMovies.length} results
       </Typography>
       <Metrics movies={movies} topActorsNumber={plugin.settings.topActorsNumber} topGenresNumber={plugin.settings.topGenresNumber} topDirectorsNumber={plugin.settings.topDirectorsNumber} minMoviesForMetrics={plugin.settings.minMoviesForMetrics} movieMetricsHeadingColor={plugin.settings.movieMetricsHeadingColor} movieMetricsSubheadingColor={plugin.settings.movieMetricsSubheadingColor} themeMode={themeMode} />
+      {(!movies || movies.length === 0) && (
+        <div> No movie or tv show titles found in the folder {plugin.settings.movieFolderPath}</div>
+      )}
       <MovieGrid movies={filteredMovies.length > 0 ? filteredMovies : movies} selectedProperties={selectedProperties} numberOfColumns={plugin.settings.numberOfColumns} toggleFittedImage={plugin.settings.toggleFittedImages} movieCardColor={plugin.settings.movieCardColor} />
     </Container>
   );
