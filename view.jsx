@@ -27,6 +27,7 @@ export class TVTracker extends ItemView {
 
         const filePath = `/${this.plugin.settings.movieFolderPath}/${filename}.md`;
         await this.app.vault.create(filePath, content);
+
     }
 
     async onOpen() {

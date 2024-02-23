@@ -4,9 +4,20 @@ Movie and TV show tracker plugin for Obsidian
 
 # Description
 
-A simple Movie and TV show library to keep track of favourite movies and shows. Each Movie and TV show is saved as a markdown file in a folder of your choice. Each file has YAML content which is used to Display, filter and sort content. This product uses the TMDB API but is not endorsed or certified by TMDB. The TMDB API is free for personal uses and requires a license for commercial use. To be able to add new Movies and TV shows you will need to get your personal API key from TMDB. Simply create an account at https://www.themoviedb.org/signup and get the API key. You will then have to enter your API key in the settings for this plugin.
+A simple Movie and TV show library to keep track of favourite movies and shows. Each Movie and TV show is saved as a markdown file in a folder of your choice (Specified in the settings). Each file has YAML content which is used to Display, filter and sort content. This product uses the TMDB API but is not endorsed or certified by TMDB. The TMDB API is free for personal uses and requires a license for commercial use. To be able to add new Movies and TV shows you will need to get your personal API key from TMDB. Simply create an account at https://www.themoviedb.org/signup and get the API key. You will then have to enter your API key in the settings for this plugin.
 
-A template library of Movies and TV shows is available on request to play with the plugin.
+A template library of Movies and TV shows is available in the github repo https://github.com/Shreshth-mehra/Obsidian-TV-Tracker.
+
+Note: The plugin does not refresh on its own, please close and open the plugin again to see newly added titles.
+
+## Upcoming
+
+I have alreayd started work on the next update and am planning the following major changes
+
+1. Discover New - Helps you find what to watch based on your titles and rating
+2. Faster performance
+3. Improved metrics options and calculations
+4. Imporved UI scaling
 
 # Usage
 
@@ -57,3 +68,8 @@ There are 13 configurable settings. The two most improtant ones are the TMDB API
 
 This product uses the TMDB API but is not endorsed or certified by TMDB. You will have to obtain your own personal TMDB API to use this plugin.The TMDB API is used for fetching all necessary details about each title including but not limited to Official title, poster, Cast members, Genre, Avg rating, Popularity etc.
 ![TMDB_Logo](https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_2-d537fb228cf3ded904ef09b136fe3fec72548ebc1fea3fbbd1ad9e36364db38b.svg)
+
+# Support
+
+If you enjoyed using this code or found it helpful, feel free to say thank you by buying me a coffee. https://www.buymeacoffee.com/shreshthmehra
+![image](https://github.com/Shreshth-mehra/Obsidian-TV-Tracker/assets/39000100/070b470b-5051-4d42-8be0-4b417acacc0a)
