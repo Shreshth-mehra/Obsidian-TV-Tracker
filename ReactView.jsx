@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
 import MovieGrid from "./Components/GridView";
-import { Container, Typography, Box } from "@mui/material";
+import { Container, Typography, Box, Collapse, Button } from "@mui/material";
 import Header from './Components/headerView';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -10,6 +10,22 @@ import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Metrics from './Components/metricsView';
 import { Platform } from "obsidian";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import DiscoverPopup from './Components/discoverView'
+
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 
 
@@ -47,12 +63,21 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showWatchlist, setShowWatchlist] = useState(false);
+  const [legendOpen, setLegendOpen] = useState(false);
   const [sortOption, setSortOption] = useState('Rating');
   const [sortOrder, setSortOrder] = useState('descending');
+  const [showDiscoverPopup, setShowDiscoverPopup] = useState(false);
   const [debugInfo, setDebugInfo] = useState('Should not be this');
 
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const isMobile = Platform.isMobile;
+
+  const openDiscoverPopup = () => setShowDiscoverPopup(true);
+
+  // Handler for closing the Discover popup
+  const closeDiscoverPopup = () => setShowDiscoverPopup(false);
+
 
 
   const handleGenreChange = (event) => {
@@ -87,7 +112,13 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
         const avgVoteA = parseFloat(a['Avg vote']) || 0;
         const avgVoteB = parseFloat(b['Avg vote']) || 0;
         comparison = avgVoteA - avgVoteB;
+      } else if (sortOption === 'Hidden Gem factor') {
+        // Compute the ratio of Rating divided by Popularity for sorting
+        const ratioA = a.Rating / a.Popularity;
+        const ratioB = b.Rating / b.Popularity;
+        comparison = ratioA - ratioB;
       }
+
 
       return sortOrder === 'ascending' ? comparison : -comparison;
     });
@@ -111,7 +142,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
 
     applyFilters();
 
-  }, [movies, selectedGenres, selectedTypes, selectedRating, searchTerm, sortOption, showWatchlist, sortOrder]);
+  }, [movies, selectedGenres, selectedTypes, selectedRating, debouncedSearchTerm, sortOption, showWatchlist, sortOrder]);
 
   const handlePropertyChange = (event) => {
     const {
@@ -131,10 +162,13 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
     setSortOption(sort);
   };
 
+  const handleExpandLegend = () => {
+    setLegendOpen(!legendOpen);
+  };
 
 
   const applyFilters = () => {
-    const lowerCaseSearchTerm = searchTerm.toLowerCase();
+    const lowerCaseSearchTerm = debouncedSearchTerm.toLowerCase();
 
 
     const filtered = movies.filter(movie => {
@@ -223,6 +257,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
             }
           }}
         />
+
         <FormControlLabel
           control={
             <Checkbox
@@ -234,16 +269,59 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
           label="Show Watchlist"
         />
       </Box>
-
       <Typography sx={
         { flexGrow: 1, padding: '20px' }}>
         Showing {filteredMovies.length} results
       </Typography>
-      <Metrics movies={movies} topActorsNumber={plugin.settings.topActorsNumber} topGenresNumber={plugin.settings.topGenresNumber} topDirectorsNumber={plugin.settings.topDirectorsNumber} minMoviesForMetrics={plugin.settings.minMoviesForMetrics} movieMetricsHeadingColor={plugin.settings.movieMetricsHeadingColor} movieMetricsSubheadingColor={plugin.settings.movieMetricsSubheadingColor} themeMode={themeMode} />
+      <Box style={{ padding: '10px' }}>
+        <Button variant="contained" onClick={openDiscoverPopup} style={{ color: 'inherit' }}>Discover</Button>
+      </Box>
+      <Box display="flex" justifyContent="flex-start" alignItems="center">
+        <ExpandMoreIcon onClick={handleExpandLegend}
+          style={{
+            color: themeMode === 'dark' ? 'white' : 'inherit', transform: legendOpen ? 'rotate(0deg)' : 'rotate(270deg)',
+            transition: 'transform 0.3s'
+          }} />
+
+        <Typography onClick={handleExpandLegend} variant="h6" style={{ color: plugin.settings.movieMetricsHeadingColor }}>Legend</Typography>
+      </Box>
+      <Collapse in={legendOpen} timeout="auto" unmountOnExit>
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+
+          <Typography sx={
+            { display: ' flex', padding: '10px' }}>
+            ⭐ = Don't Bother  | ⭐⭐ = Time waste
+          </Typography>
+
+          <Typography sx={
+            { display: ' flex', padding: '10px' }}>
+            ⭐⭐⭐ = Time Pass  | ⭐⭐⭐✨ = Good Time Pass
+          </Typography>
+          <Typography sx={
+            { display: ' flex', padding: '10px' }}>
+            ⭐⭐⭐⭐ = Good Watch |   ⭐⭐⭐⭐✨ = Great Watch
+          </Typography>
+          <Typography sx={
+            { display: ' flex', padding: '10px' }}>
+            ⭐⭐⭐⭐⭐ = See right now if you haven't
+          </Typography>
+        </Box>
+      </Collapse>
+
+      <Metrics movies={movies} topActorsNumber={plugin.settings.topActorsNumber} topGenresNumber={plugin.settings.topGenresNumber} topDirectorsNumber={plugin.settings.topDirectorsNumber} minMoviesForMetrics={plugin.settings.minMoviesForMetrics} movieMetricsHeadingColor={plugin.settings.movieMetricsHeadingColor} movieMetricsSubheadingColor={plugin.settings.movieMetricsSubheadingColor} themeMode={themeMode} metricsHeading={plugin.settings.metricsHeading} />
+      <DiscoverPopup
+        open={showDiscoverPopup}
+        onClose={closeDiscoverPopup}
+        genres={genreList} // Pass the genre list
+        movies={movies}
+        themeMode={themeMode}
+        movieCardColor={plugin.settings.movieCardColor}
+        apiKey={plugin.settings.apiKey}
+      />
       {(!movies || movies.length === 0) && (
         <div> No movie or tv show titles found in the folder {plugin.settings.movieFolderPath}</div>
       )}
-      <MovieGrid movies={filteredMovies.length > 0 ? filteredMovies : movies} selectedProperties={selectedProperties} numberOfColumns={plugin.settings.numberOfColumns} toggleFittedImage={plugin.settings.toggleFittedImages} movieCardColor={plugin.settings.movieCardColor} />
+      <MovieGrid movies={filteredMovies.length > 0 ? filteredMovies : movies} selectedProperties={selectedProperties} numberOfColumns={plugin.settings.numberOfColumns} toggleFittedImage={plugin.settings.toggleFittedImages} movieCardColor={plugin.settings.movieCardColor} plugin={plugin} />
     </Container>
   );
 };

@@ -17,6 +17,7 @@ interface TVTrackerSettings {
 	movieMetricsHeadingColor: string;
     movieMetricsSubheadingColor: string;
     movieCardColor: string;
+	metricsHeading: string;
 }
 
 const DEFAULT_TV_SETTINGS: TVTrackerSettings = {
@@ -33,7 +34,8 @@ const DEFAULT_TV_SETTINGS: TVTrackerSettings = {
 	minMoviesForMetrics:7,
 	movieMetricsHeadingColor: 'lightblue', 
     movieMetricsSubheadingColor: 'orange', 
-	movieCardColor: 'inherit'
+	movieCardColor: 'inherit',
+	metricsHeading: 'For Number geeks'
 
 }
 
@@ -254,6 +256,18 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 	}
 
 	addMetricSettings(containerEl: HTMLElement) {
+
+		new Setting(containerEl)
+		.setName('Name of Metrics')
+		.setDesc('Name for the heading where various metrics are shown')
+        .addText(text => text
+            .setValue(this.plugin.settings.metricsHeading)
+            .onChange(async (value) => {
+                this.plugin.settings.metricsHeading = value;
+                await this.plugin.saveSettings();
+            }));
+
+
 			new Setting(containerEl)
 		.setName('Number of top genres to show')
 		.setDesc('Number of top genres to show in metrics')

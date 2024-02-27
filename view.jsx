@@ -42,7 +42,13 @@ export class TVTracker extends ItemView {
                     // Ensure the file is a markdown file
                     if (file instanceof TFile && file.extension === 'md') {
                         const cache = this.app.metadataCache.getFileCache(file);
-                        moviesData.push(cache?.frontmatter);
+                        if (cache?.frontmatter && cache.frontmatter["TMDB ID"]) {
+                            let movieInfo = {
+                                ...cache.frontmatter,
+                                filePath: file.path
+                            };
+                            moviesData.push(movieInfo);
+                        }
                     }
                 }
             }

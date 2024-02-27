@@ -6,7 +6,7 @@ import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 
 
-const MovieGrid = ({ movies, selectedProperties, numberOfColumns, toggleFittedImage, movieCardColor }) => {
+const MovieGrid = ({ movies, selectedProperties, numberOfColumns, toggleFittedImage, movieCardColor, plugin }) => {
 
 
   const generateStars = (rating) => {
@@ -20,11 +20,16 @@ const MovieGrid = ({ movies, selectedProperties, numberOfColumns, toggleFittedIm
     return stars;
   };
 
+  function openFile(filePath) {
+    console.log("Path is " + filePath);
+    plugin.app.workspace.openLinkText(filePath, '/', true); // This is a hypothetical example
+  }
+
   return (
     <Grid container spacing={2}>
       {movies.map((movie, index) => (
         <Grid key={index} xs={6} sm={12 / numberOfColumns} md={12 / numberOfColumns}>
-          <Card style={{ margin: 8, backgroundColor: movieCardColor, color: 'inherit' }}>
+          <Card onClick={() => openFile(movie.filePath)} style={{ margin: 8, backgroundColor: movieCardColor, color: 'inherit' }}>
             <CardMedia
               component="img"
               height="140"
