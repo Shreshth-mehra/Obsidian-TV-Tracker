@@ -234,7 +234,7 @@ const DiscoverPopup = ({ open, onClose, genres, movies, themeMode, movieCardColo
                 position: 'relative',
             }
         }}>
-            <DialogTitle>{showResults ? 'What are you in mood for? Please select' : 'Discover'}</DialogTitle>
+            <DialogTitle>{showResults ? 'What are you in mood for? Please select similar movies from your library' : 'Discover'}</DialogTitle>
             <DialogContent>
 
                 {!showResults ? (
@@ -377,20 +377,20 @@ const DiscoverPopup = ({ open, onClose, genres, movies, themeMode, movieCardColo
             </DialogContent>
             <DialogActions>
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', padding: 2 }}>
-                    <FormControl variant="outlined" size="small">
+                    {/* <FormControl variant="outlined" size="small">
                         <InputLabel>Country for Available on</InputLabel>
                         <Select
                             value={selectedCountry}
                             onChange={(e) => setSelectedCountry(e.target.value)}
                             label="Country"
                         >
-                            {/* Populate this Select with countries as needed */}
+                          
                             <MenuItem value="US">United States</MenuItem>
                             <MenuItem value="CA">Canada</MenuItem>
                             <MenuItem value="IN">India</MenuItem>
-                            {/* Add more countries here */}
+                           
                         </Select>
-                    </FormControl>
+                    </FormControl> */}
                 </Box>
                 {showResults && (
                     <Button onClick={() => {
