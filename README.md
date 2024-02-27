@@ -2,9 +2,32 @@
 
 Movie and TV show tracker plugin for Obsidian
 
+I work on this in my spare time. If you enjoy using this, please say Thank you or 
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/shreshthmehra)
+
+Happy to implement any feature requests you have or better yet, if you wish you can create pull requests.
+
+## Showcase
+
+
+https://github.com/Shreshth-mehra/Obsidian-TV-Tracker/assets/39000100/fd568bf2-c214-4e0b-b0f9-7f5f71085d7f
+
+
+https://github.com/Shreshth-mehra/Obsidian-TV-Tracker/assets/39000100/dcc55a01-a216-4563-ab6d-890cdfb60682
+
+
+
+
+https://github.com/Shreshth-mehra/Obsidian-TV-Tracker/assets/39000100/b14e9447-9838-4891-8786-906e4a16e26e
+
+
+
+
 # Description
 
-A simple Movie and TV show library to keep track of favourite movies and shows. Each Movie and TV show is saved as a markdown file in a folder of your choice (Specified in the settings). Each file has YAML content which is used to Display, filter and sort content. This product uses the TMDB API but is not endorsed or certified by TMDB. The TMDB API is free for personal uses and requires a license for commercial use. To be able to add new Movies and TV shows you will need to get your personal API key from TMDB. Simply create an account at https://www.themoviedb.org/signup and get the API key. You will then have to enter your API key in the settings for this plugin.
+A simple Movie and TV show library to keep track of favourite movies and shows. The discover feature helps you find new movies and shows based on your library and ratings. Better and more algorithms for discover new coming soon. 
+
+Each Movie and TV show is saved as a markdown file in a folder of your choice (Specified in the settings). Each file has YAML content which is used to Display, filter and sort content. To be able to add new Movies and TV shows you will need to get your personal API key from TMDB. Simply create an account at https://www.themoviedb.org/signup and get the API key. You will then have to enter your API key in the settings for this plugin.
 
 A template library of Movies and TV shows is available in the github repo https://github.com/Shreshth-mehra/Obsidian-TV-Tracker.
 
@@ -12,12 +35,11 @@ Note: The plugin does not refresh on its own, please close and open the plugin a
 
 ## Upcoming
 
-I have alreayd started work on the next update and am planning the following major changes
+I have already started work on the next update and am planning the following major changes
 
-1. Discover New - Helps you find what to watch based on your titles and rating
+1. Discover New - Multiple algorithms to choose from for discovering
 2. Faster performance
-3. Improved metrics options and calculations
-4. Imporved UI scaling
+3. Improved UI scaling
 
 # Usage
 
@@ -33,6 +55,10 @@ The easiest way for adding new titles is through the add new button in the heade
 4. Type - Please select from Movie or Series
 
 If you wish to batch add titles from a csv, I can provide python scripts that I used myself
+
+## Discover
+
+After selecting the genre you will be shown titles from your own library in that genre. You can then select the type of movies/show you are in a mood for and then the algorithm recommends new movies/shows you haven't seen. 
 
 ## Metrics
 
@@ -56,13 +82,6 @@ There are 13 configurable settings. The two most improtant ones are the TMDB API
 5. If the entire library is large and cache was recently cleared or does not exist yet then incorrect Poster paths might be displayed for a while. Please be patient at this point as it will eventually resolve itself
 6. If you change the theme in your vault from Light ot Dark or the other way around. Please turn the plugin off and then turn it on again for necessary changes to reflect.
 
-# Screenshots
-
-![Overview](/Screenshots/Overview.png)
-![Overview_2](/Screenshots/Overview_2.png)
-![Metrics](/Screenshots/metrics.png)
-![add_new](/Screenshots/add_new.png)
-![add_new_options](/Screenshots/add_new_options.png)
 
 # Attribution
 
