@@ -13,7 +13,7 @@ Happy to implement any feature requests you have or better yet, if you wish you 
 
 ![Discover](https://raw.githubusercontent.com/Shreshth-mehra/Obsidian-TV-Tracker/main/Showcase/discover.gif)
 
-![Add new](https://raw.githubusercontent.com/Shreshth-mehra/Obsidian-TV-Tracker/main/Showcase/addnew.gif)
+![Add new](https://raw.githubusercontent.com/Shreshth-mehra/Obsidian-TV-Tracker/main/Showcase/addnew2.gif)
 
 
 
