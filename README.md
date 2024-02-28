@@ -9,17 +9,11 @@ Happy to implement any feature requests you have or better yet, if you wish you 
 
 ## Showcase
 
+![General](https://raw.githubusercontent.com/Shreshth-mehra/Obsidian-TV-Tracker/main/Showcase/general2.gif)
 
-https://github.com/Shreshth-mehra/Obsidian-TV-Tracker/assets/39000100/fd568bf2-c214-4e0b-b0f9-7f5f71085d7f
+![Discover](https://raw.githubusercontent.com/Shreshth-mehra/Obsidian-TV-Tracker/main/Showcase/discover.gif)
 
-
-https://github.com/Shreshth-mehra/Obsidian-TV-Tracker/assets/39000100/dcc55a01-a216-4563-ab6d-890cdfb60682
-
-
-
-
-https://github.com/Shreshth-mehra/Obsidian-TV-Tracker/assets/39000100/b14e9447-9838-4891-8786-906e4a16e26e
-
+![Add new](https://raw.githubusercontent.com/Shreshth-mehra/Obsidian-TV-Tracker/main/Showcase/addnew.gif)
 
 
 
