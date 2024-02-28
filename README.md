@@ -44,7 +44,7 @@ The Plugin is accesible as a 'Star' Ribbon icon. On clicking, this will open a n
 The easiest way for adding new titles is through the add new button in the header. You will be prompted to enter 4 details
 
 1. Name - Used for searching TMDB API
-2. Rating - Your rating for the title as a number betwen (0-5 in increments of 0.5)
+2. Rating - Your rating for the title as a number between 0-5 (in increments of 0.5)
 3. Status - For watchlist please enter 'Watchlist' else it will not show up in the watchlist. For all others you can enter that status to whatever you like. I usually choose from Watched (for movies), Complete, Incomplete, In Progress (for TV shows)
 4. Type - Please select from Movie or Series
 
