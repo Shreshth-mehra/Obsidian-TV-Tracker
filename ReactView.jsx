@@ -273,42 +273,48 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
         { flexGrow: 1, padding: '20px' }}>
         Showing {filteredMovies.length} results
       </Typography>
-      <Box style={{ padding: '10px' }}>
+      <Box style={{ padding: '10px', marginBottom: '10px' }}>
         <Button variant="contained" onClick={openDiscoverPopup} style={{ color: 'inherit' }}>Discover</Button>
       </Box>
-      <Box display="flex" justifyContent="flex-start" alignItems="center">
-        <ExpandMoreIcon onClick={handleExpandLegend}
-          style={{
-            color: themeMode === 'dark' ? 'white' : 'inherit', transform: legendOpen ? 'rotate(0deg)' : 'rotate(270deg)',
-            transition: 'transform 0.3s'
-          }} />
+      {!plugin.settings.hideLegend && (
+        <Box>
+          <Box display="flex" justifyContent="flex-start" alignItems="center">
+            <ExpandMoreIcon onClick={handleExpandLegend}
+              style={{
+                color: themeMode === 'dark' ? 'white' : 'inherit', transform: legendOpen ? 'rotate(0deg)' : 'rotate(270deg)',
+                transition: 'transform 0.3s'
+              }} />
 
-        <Typography onClick={handleExpandLegend} variant="h6" style={{ color: plugin.settings.movieMetricsHeadingColor }}>Legend</Typography>
-      </Box>
-      <Collapse in={legendOpen} timeout="auto" unmountOnExit>
-        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography onClick={handleExpandLegend} variant="h6" style={{ color: plugin.settings.movieMetricsHeadingColor }}>Legend</Typography>
+          </Box>
 
-          <Typography sx={
-            { display: ' flex', padding: '10px' }}>
-            ⭐ = Don't Bother  | ⭐⭐ = Time waste
-          </Typography>
+          <Collapse in={legendOpen} timeout="auto" unmountOnExit>
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
 
-          <Typography sx={
-            { display: ' flex', padding: '10px' }}>
-            ⭐⭐⭐ = Time Pass  | ⭐⭐⭐✨ = Good Time Pass
-          </Typography>
-          <Typography sx={
-            { display: ' flex', padding: '10px' }}>
-            ⭐⭐⭐⭐ = Good Watch |   ⭐⭐⭐⭐✨ = Great Watch
-          </Typography>
-          <Typography sx={
-            { display: ' flex', padding: '10px' }}>
-            ⭐⭐⭐⭐⭐ = See right now if you haven't
-          </Typography>
+              <Typography sx={
+                { display: ' flex', padding: '10px' }}>
+                ⭐ = Don't Bother  | ⭐⭐ = Time waste
+              </Typography>
+
+              <Typography sx={
+                { display: ' flex', padding: '10px' }}>
+                ⭐⭐⭐ = Time Pass  | ⭐⭐⭐✨ = Good Time Pass
+              </Typography>
+              <Typography sx={
+                { display: ' flex', padding: '10px' }}>
+                ⭐⭐⭐⭐ = Good Watch |   ⭐⭐⭐⭐✨ = Great Watch
+              </Typography>
+              <Typography sx={
+                { display: ' flex', padding: '10px' }}>
+                ⭐⭐⭐⭐⭐ = See right now if you haven't
+              </Typography>
+            </Box>
+          </Collapse>
         </Box>
-      </Collapse>
-
-      <Metrics movies={movies} topActorsNumber={plugin.settings.topActorsNumber} topGenresNumber={plugin.settings.topGenresNumber} topDirectorsNumber={plugin.settings.topDirectorsNumber} minMoviesForMetrics={plugin.settings.minMoviesForMetrics} movieMetricsHeadingColor={plugin.settings.movieMetricsHeadingColor} movieMetricsSubheadingColor={plugin.settings.movieMetricsSubheadingColor} themeMode={themeMode} metricsHeading={plugin.settings.metricsHeading} />
+      )}
+      {!plugin.settings.hideMetrics && (
+        <Metrics movies={movies} topActorsNumber={plugin.settings.topActorsNumber} topGenresNumber={plugin.settings.topGenresNumber} topDirectorsNumber={plugin.settings.topDirectorsNumber} minMoviesForMetrics={plugin.settings.minMoviesForMetrics} movieMetricsHeadingColor={plugin.settings.movieMetricsHeadingColor} movieMetricsSubheadingColor={plugin.settings.movieMetricsSubheadingColor} themeMode={themeMode} metricsHeading={plugin.settings.metricsHeading} />
+      )}
       <DiscoverPopup
         open={showDiscoverPopup}
         onClose={closeDiscoverPopup}

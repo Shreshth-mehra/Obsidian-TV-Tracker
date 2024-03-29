@@ -1,6 +1,6 @@
 // AddMovieDialog.jsx
 import React, { useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, TextField, DialogActions, Button, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import { Box, Typography, Dialog, DialogTitle, DialogContent, TextField, DialogActions, Button, Select, MenuItem, FormControl, InputLabel, Slider } from "@mui/material";
 
 
 
@@ -54,22 +54,39 @@ const AddMovieDialog = ({ open, handleClose, handleAddMovie, themeMode }) => {
 
           onChange={(e) => setMovieName(e.target.value)}
         />
-        <TextField
-
-          margin="dense"
-          id="rating"
-          label="Rating"
-          fullWidth
-          variant="outlined"
-          value={movieRating}
-          InputLabelProps={{ style: { color: textColor } }}
-          sx={{
-            input: { color: textColor },
-            '& .MuiOutlinedInput-root': { backgroundColor: textColor }, // Apply background here
-            '& .MuiOutlinedInput-notchedOutline': { borderColor: textColor },
-          }}
-          onChange={(e) => setMovieRating(e.target.value)}
-        />
+        <Box sx={{ width: '100%', margin: 'dense' }}>
+          <Typography id="rating-slider" gutterBottom>
+            Rating
+          </Typography>
+          <Slider
+            aria-labelledby="rating-slider"
+            value={typeof movieRating === 'number' ? movieRating : 0}
+            onChange={(e, newValue) => setMovieRating(newValue)}
+            step={0.5}
+            marks
+            min={0}
+            max={5}
+            valueLabelDisplay="auto"
+            sx={{
+              '& .MuiSlider-thumb': {
+                color: textColor, // Custom thumb color
+              },
+              '& .MuiSlider-track': {
+                color: textColor, // Custom track color
+              },
+              '& .MuiSlider-rail': {
+                color: '#bfbfbf', // Custom rail color
+              },
+              '& .MuiSlider-mark': {
+                color: textColor, // Custom mark color
+                backgroundColor: textColor, // Custom mark background color if needed
+              },
+              '& .MuiSlider-markLabel': {
+                color: textColor, // Custom mark label color
+              },
+            }}
+          />
+        </Box>
         <TextField
           margin="dense"
           id="status"

@@ -7,7 +7,9 @@ interface TVTrackerSettings {
 	movieFolderPath: string;
 	numberOfColumns: number;           
     numberOfResults: number;            
-    toggleFittedImages: boolean;        
+    toggleFittedImages: boolean;  
+	hideLegend: boolean;
+	hideMetrics: boolean;       
     imageFolderPath: string;   
 	apiKey: string;
 	topGenresNumber: number;
@@ -25,7 +27,9 @@ const DEFAULT_TV_SETTINGS: TVTrackerSettings = {
 	movieFolderPath: 'Movies',
 	numberOfColumns: 6,               
     numberOfResults: 3,               
-    toggleFittedImages: true,         
+    toggleFittedImages: true,  
+	hideLegend: false, 
+	hideMetrics: false,        
     imageFolderPath: 'Movies/Images',
 	apiKey :'' ,
 	topActorsNumber:5,
@@ -159,6 +163,17 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
+				new Setting(containerEl)
+				.setName('Hide Legend')
+				.setDesc('Hide Legend from the view')
+				.addToggle(toggle => toggle
+					.setValue(this.plugin.settings.hideLegend)
+					.onChange(async (value) => {
+						this.plugin.settings.hideLegend = value;
+						await this.plugin.saveSettings();
+					}));
+		
+
 		
 
     let styleSettingsContainer = this.addSectionHeader(containerEl, 'Style', 'style-settings');
@@ -256,6 +271,17 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 	}
 
 	addMetricSettings(containerEl: HTMLElement) {
+
+		new Setting(containerEl)
+		.setName('Hide Metrics')
+		.setDesc('Hide Metrics from the view')
+		.addToggle(toggle => toggle
+			.setValue(this.plugin.settings.hideMetrics)
+			.onChange(async (value) => {
+				this.plugin.settings.hideMetrics = value;
+				await this.plugin.saveSettings();
+			}));
+
 
 		new Setting(containerEl)
 		.setName('Name of Metrics')
