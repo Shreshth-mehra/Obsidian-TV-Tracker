@@ -4,6 +4,8 @@ Movie and TV show tracker plugin for Obsidian
 
 # New in v1.3.0
 
+Have noticed some minor errors in the v1.3.0. Will be releasing a v.1.3.1 very soon. I would suggest not updating till 1.3.1 is released. However, the errors are non fatal and more of a User experience issue.
+
 -   Added more properties
 
 1. Overview
