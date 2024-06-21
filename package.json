@@ -1,6 +1,6 @@
 {
 	"name": "tv-tracker-plugin",
-	"version": "1.0.0",
+	"version": "1.3.0",
 	"description": "This is a movie and tv show tracker plugin for obsidian",
 	"main": "main.js",
 	"scripts": {

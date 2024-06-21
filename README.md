@@ -2,12 +2,37 @@
 
 Movie and TV show tracker plugin for Obsidian
 
-I work on this in my spare time. If you enjoy using this, please say Thank you or 
+# New in v1.3.0
+
+-   Added more properties
+
+1. Overview
+2. Trailer link
+3. Original Language
+4. Production Company
+5. Belongs to Collection
+6. Budget
+7. Revenue
+
+-   More Metrics
+
+1. Top Production Companies
+2. Top Collections
+3. Budget Metrics
+   a. Highest and Lowest Revenue
+   b. Highest and Lowest Budget
+   c. Under and Over Performer (Ratio of Revenue to Budget)
+
+-   Added Clear all filters button
+-   Can search using Production companies now
+-   Improved Error handling and Notices
+
+I work on this in my spare time. If you enjoy using this, please say Thank you or
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/shreshthmehra)
 
 Happy to implement any feature requests you have or better yet, if you wish you can create pull requests.
 
-## Showcase
+## Showcase as of v1.1.0 (More features in v1.3.0)
 
 ![General](https://raw.githubusercontent.com/Shreshth-mehra/Obsidian-TV-Tracker/main/Showcase/general2.gif)
 
@@ -15,11 +40,9 @@ Happy to implement any feature requests you have or better yet, if you wish you 
 
 ![Add new](https://raw.githubusercontent.com/Shreshth-mehra/Obsidian-TV-Tracker/main/Showcase/addnew2.gif)
 
-
-
 # Description
 
-A simple Movie and TV show library to keep track of favourite movies and shows. The discover feature helps you find new movies and shows based on your library and ratings. Better and more algorithms for discover new coming soon. 
+A simple Movie and TV show library to keep track of favourite movies and shows. The discover feature helps you find new movies and shows based on your library and ratings. Better and more algorithms for discover new coming soon.
 
 Each Movie and TV show is saved as a markdown file in a folder of your choice (Specified in the settings). Each file has YAML content which is used to Display, filter and sort content. To be able to add new Movies and TV shows you will need to get your personal API key from TMDB. Simply create an account at https://www.themoviedb.org/signup and get the API key. You will then have to enter your API key in the settings for this plugin.
 
@@ -52,30 +75,37 @@ If you wish to batch add titles from a csv, I can provide python scripts that I 
 
 ## Discover
 
-After selecting the genre you will be shown titles from your own library in that genre. You can then select the type of movies/show you are in a mood for and then the algorithm recommends new movies/shows you haven't seen. 
+After selecting the genre you will be shown titles from your own library in that genre. You can then select the type of movies/show you are in a mood for and then the algorithm recommends new movies/shows you haven't seen.
 
 ## Metrics
 
-The Movie Metrics shows top Genres, Actors, Directors and total viewing time from your library. There are 4 options to choose from for deciding the metric for Top in each category. The total viewing time only displays the viewing time of Movies and does not include Series
+The Movie Metrics shows top Genres, Actors, Directors, Production Companies and total viewing time from your library. It also shows Budget metrics and Genre taste index.
+
+There are 4 options to choose from for deciding the metric for Top in each category. The total viewing time only displays the viewing time of Movies and does not include Series.
 
 1. Count - Based on how many titles are there in your library for the category
-2. Simple Rating - Based on sum of Rating for each category. For example, when evaluating Top Actors the points for say Sandra Bullock will be calculated as sum of the ratings for each of her movies and shows in your library
-3. Balance Rating - Similar to Simple rating but an Actor gets more points if they are in the 4 Cast members for a title. For Top Genre and Directors acts the same way as Simple Rating
+2. Simple Rating - Based on sum of Rating for each category. For example, when evaluating Top Actors the points for Sandra Bullock will be calculated as the sum of the ratings for each of her movies and tv shows in your library.
+3. Balanced Rating - Similar to Simple rating but an Actor gets more points if they are in the first 4 Cast members for a title. For Top Genre, Directors, Production Companies act the same way as Simple Rating
 4. Avg Rating - Avg rating for the person/genre if they have a minimum number of titles (This number can be changed from settings)
+
+Genre taste index is the ration of User rating to public rating for each of the title in that genre. So, if your genre taste index for Documentries is 1.2 that means that you rate documentary movies 1.2 times higher on average than public ratings. Keep in mind that the public ratings are fetched from TMDB and are on a scale of 1 to 10. The user rating is multiplied by 2 for this calculation to be on the same scale. Additionally, the rating mode does not affect this metric.
 
 ## Settings
 
-There are 13 configurable settings. The two most improtant ones are the TMDB API key and the Folder path. The folder path is relative to the root of your obsidian vault (where the .obsidian folder is). So if the content is in a folder called Movies which is in the root, then the path would simply be 'Movies'
+The plugin was designed for high customization and hence has multiple configurable settings. The two most improtant ones are the TMDB API key and the Folder path. The folder path is relative to the root of your obsidian vault (where the .obsidian folder is). So if the content is in a folder called Movies which is in the root, then the path would simply be 'Movies'
+
+### Updating Files
+
+As of version 1.3.0 options to update previously existing files has been added. I have tested the plugin on multiple test cases but please keep a backup of your library before proceeding. If any errors occur, please create an issue on Github and I will work towards solving it as soon as possible.
 
 # Key things to note
 
 1. When entering a movie in the watchlist. Please enter the rating as 1 or higher otherwise the movie will not be displayed
-2. After adding a title, the TV tracker will ahve to be reloaded for the title to show up.
+2. After adding a title, the TV tracker will have to be reloaded for the title to show up.
 3. If the movie has a special character in it's name such as '!' , ':' , '?' or '&' . Please remove the special character from the markdown file name after creating it through Add new.
 4. If there are no results to show for a search then all titles will be displayed but the Showing results will read 0
-5. If the entire library is large and cache was recently cleared or does not exist yet then incorrect Poster paths might be displayed for a while. Please be patient at this point as it will eventually resolve itself
+5. If the entire library is large and cache was recently cleared or does not exist yet then incorrect Poster paths might be displayed for a while. Please be patient as it will eventually resolve itself.
 6. If you change the theme in your vault from Light ot Dark or the other way around. Please turn the plugin off and then turn it on again for necessary changes to reflect.
-
 
 # Attribution
 

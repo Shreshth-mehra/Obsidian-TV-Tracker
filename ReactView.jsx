@@ -9,7 +9,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Metrics from './Components/metricsView';
-import { Platform } from "obsidian";
+import { Platform, Notice } from "obsidian";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DiscoverPopup from './Components/discoverView'
 
@@ -78,7 +78,13 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
   // Handler for closing the Discover popup
   const closeDiscoverPopup = () => setShowDiscoverPopup(false);
 
-
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setSelectedGenres([]);
+    setSelectedTypes([]);
+    setSelectedRating(1);
+    setShowWatchlist(false);
+  };
 
   const handleGenreChange = (event) => {
     const {
@@ -86,6 +92,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
     } = event;
 
     setSelectedGenres(typeof value === 'string' ? value.split(',') : value);
+
   };
 
 
@@ -168,24 +175,34 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
 
 
   const applyFilters = () => {
+
     const lowerCaseSearchTerm = debouncedSearchTerm.toLowerCase();
 
 
     const filtered = movies.filter(movie => {
+      try {
+        const matchesTitle = movie.Title && movie.Title.toString().toLowerCase().includes(lowerCaseSearchTerm);
+        const matchesDirector = movie.Director ? movie.Director.toLowerCase().includes(lowerCaseSearchTerm) : false;
 
-      const matchesTitle = movie.Title && movie.Title.toLowerCase().includes(lowerCaseSearchTerm);
-      const matchesDirector = movie.Director ? movie.Director.toLowerCase().includes(lowerCaseSearchTerm) : false;
+        const matchesCast = movie.Cast && movie.Cast.split(', ').some(castMember =>
+          castMember.toLowerCase().includes(lowerCaseSearchTerm)
+        );
+        const matchesProductionComapny = movie.production_company && movie.production_company.split(', ').some(producer =>
+          producer.toLowerCase().includes(lowerCaseSearchTerm)
+        );
 
-      const matchesCast = movie.Cast && movie.Cast.split(', ').some(castMember =>
-        castMember.toLowerCase().includes(lowerCaseSearchTerm)
-      );
+        const matchesGenre = selectedGenres.length === 0 || selectedGenres.some(Genre => movie.Genre.split(', ').includes(Genre));
 
-      const matchesGenre = selectedGenres.length === 0 || selectedGenres.some(Genre => movie.Genre.split(', ').includes(Genre));
-      const matchesType = selectedTypes.length === 0 || selectedTypes.includes(movie.Type);
-      const matchesRating = movie.Rating >= selectedRating;
-      const matchesWatchlist = !showWatchlist || movie.Status === 'Watchlist';
+        const matchesType = selectedTypes.length === 0 || selectedTypes.includes(movie.Type);
+        const matchesRating = movie.Rating >= selectedRating;
+        const matchesWatchlist = !showWatchlist || movie.Status === 'Watchlist';
 
-      return matchesGenre && matchesType && matchesRating && (matchesTitle || matchesCast || matchesDirector) && matchesWatchlist;
+        return matchesGenre && matchesType && matchesRating && (matchesTitle || matchesCast || matchesDirector || matchesProductionComapny) && matchesWatchlist;
+      } catch (error) {
+        new Notice(`Error processing movie ${movie.Title}. Showing rest of the results. Please console for detailed error`);
+        console.error(`Error processing movie ${movie.Title}: ${error.message}`);
+        return false;
+      }
     });
 
     const sortedMovies = sortMovies(filtered);
@@ -204,6 +221,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
         TV Tracker
       </Typography>
       <Header
+        showTrailerAndPosterLinks={plugin.settings.showTrailerAndPosterLinks}
         movieProperties={movieProperties}
         selectedProperties={selectedProperties}
         handlePropertyChange={handlePropertyChange}
@@ -221,6 +239,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
         handleSortChange={handleSortChange}
         themeMode={themeMode}
         plugin={plugin}
+        handleClearAllFilters={handleClearFilters}
       />
       <Box style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <TextField
@@ -313,7 +332,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
         </Box>
       )}
       {!plugin.settings.hideMetrics && (
-        <Metrics movies={movies} topActorsNumber={plugin.settings.topActorsNumber} topGenresNumber={plugin.settings.topGenresNumber} topDirectorsNumber={plugin.settings.topDirectorsNumber} minMoviesForMetrics={plugin.settings.minMoviesForMetrics} movieMetricsHeadingColor={plugin.settings.movieMetricsHeadingColor} movieMetricsSubheadingColor={plugin.settings.movieMetricsSubheadingColor} themeMode={themeMode} metricsHeading={plugin.settings.metricsHeading} />
+        <Metrics movies={movies} budgetMetricsSubheadingColor={plugin.settings.budgetMetricsSubheadingColor} hideBudgetMetrics={plugin.settings.hideBudgetMetrics} hideGenreTasteIndexMetrics={plugin.settings.hideGenreTasteIndexMetrics} topActorsNumber={plugin.settings.topActorsNumber} topCollectionsNumber={plugin.settings.topCollectionsNumber} topPerformersNumber={plugin.settings.topPerformersNumber} topGenresNumber={plugin.settings.topGenresNumber} topDirectorsNumber={plugin.settings.topDirectorsNumber} topProductionCompaniesNumber={plugin.settings.topProductionCompaniesNumber} minMoviesForMetrics={plugin.settings.minMoviesForMetrics} minMoviesForMetricsCollections={plugin.settings.minMoviesForMetricsCollections} minMoviesForMetricsDirectors={plugin.settings.minMoviesForMetricsDirectors} movieMetricsHeadingColor={plugin.settings.movieMetricsHeadingColor} movieMetricsSubheadingColor={plugin.settings.movieMetricsSubheadingColor} themeMode={themeMode} metricsHeading={plugin.settings.metricsHeading} />
       )}
       <DiscoverPopup
         open={showDiscoverPopup}

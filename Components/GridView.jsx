@@ -21,7 +21,7 @@ const MovieGrid = ({ movies, selectedProperties, numberOfColumns, toggleFittedIm
   };
 
   function openFile(filePath) {
-    console.log("Path is " + filePath);
+    // console.log("Path is " + filePath);
     plugin.app.workspace.openLinkText(filePath, '/', true);
   }
 

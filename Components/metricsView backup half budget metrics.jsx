@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Grid, Collapse, Switch, FormControlLabel, IconButton, Checkbox, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ExpandableSection from './expandableSection';
 
 const Metrics = ({
   movies,
@@ -17,9 +16,6 @@ const Metrics = ({
   movieMetricsHeadingColor,
   movieMetricsSubheadingColor,
   themeMode,
-  hideBudgetMetrics,
-  hideGenreTasteIndexMetrics,
-  budgetMetricsSubheadingColor,
   metricsHeading
 }) => {
   const [topGenres, setTopGenres] = useState([]);
@@ -30,10 +26,6 @@ const Metrics = ({
   const [topCollections, setTopCollections] = useState([]);
   const [underperformers, setUnderperformers] = useState([]);
   const [overperformers, setOverperformers] = useState([]);
-  const [highestBudgets, setHighestBudgets] = useState([]);
-  const [lowestBudgets, setLowestBudgets] = useState([]);
-  const [mostRevenue, setMostRevenue] = useState([]);
-  const [leastRevenue, setLeastRevenue] = useState([]);
   const [expandedMain, setExpandedMain] = useState(true);
   const [expandedGenres, setExpandedGenres] = useState(false);
   const [expandedActors, setExpandedActors] = useState(false);
@@ -41,13 +33,8 @@ const Metrics = ({
   const [expandedTasteIndex, setExpandedTasteIndex] = useState(false);
   const [expandedProductionCompanies, setExpandedProductionCompanies] = useState(false);
   const [expandedCollections, setExpandedCollections] = useState(false);
-  const [expandedBudgetMetrics, setExpandedBudgetMetrics] = useState(false);
   const [expandedUnderperformers, setExpandedUnderperformers] = useState(false);
   const [expandedOverperformers, setExpandedOverperformers] = useState(false);
-  const [expandedHighestBudgets, setExpandedHighestBudgets] = useState(false);
-  const [expandedLowestBudgets, setExpandedLowestBudgets] = useState(false);
-  const [expandedMostRevenue, setExpandedMostRevenue] = useState(false);
-  const [expandedLeastRevenue, setExpandedLeastRevenue] = useState(false);
   const [ratingMode, setRatingMode] = useState('Count');
   const [genreTasteIndexAvg, setGenreTasteIndexAvg] = useState({});
   const [includeWatchlist, setIncludeWatchlist] = useState(false);
@@ -91,10 +78,6 @@ const Metrics = ({
     let collectionMovieCount = {};
     let underperformersList = [];
     let overperformersList = [];
-    let highestBudgetsList = [];
-    let lowestBudgetsList = [];
-    let mostRevenueList = [];
-    let leastRevenueList = [];
 
     movies.forEach(movie => {
       if (includeWatchlist || movie.Status !== 'Watchlist') {
@@ -169,6 +152,8 @@ const Metrics = ({
         }
 
         if (movie.budget && movie.revenue) {
+          // const budget = parseFloat(movie.budget.replace(/[^0-9.-]+/g, ""));
+          // const revenue = parseFloat(movie.revenue.replace(/[^0-9.-]+/g, ""));
           const budget = parseFloat(movie.budget);
           const revenue = parseFloat(movie.revenue);
           if (budget > 0) {
@@ -178,10 +163,6 @@ const Metrics = ({
             } else {
               overperformersList.push({ title: movie.Title, ratio });
             }
-            highestBudgetsList.push({ title: movie.Title, budget });
-            lowestBudgetsList.push({ title: movie.Title, budget });
-            mostRevenueList.push({ title: movie.Title, revenue });
-            leastRevenueList.push({ title: movie.Title, revenue });
           }
         }
       }
@@ -242,10 +223,6 @@ const Metrics = ({
 
     setUnderperformers(underperformersList.sort((a, b) => a.ratio - b.ratio).slice(0, topPerformersNumber));
     setOverperformers(overperformersList.sort((a, b) => b.ratio - a.ratio).slice(0, topPerformersNumber));
-    setHighestBudgets(highestBudgetsList.sort((a, b) => b.budget - a.budget).slice(0, topPerformersNumber));
-    setLowestBudgets(lowestBudgetsList.sort((a, b) => a.budget - b.budget).slice(0, topPerformersNumber));
-    setMostRevenue(mostRevenueList.sort((a, b) => b.revenue - a.revenue).slice(0, topPerformersNumber));
-    setLeastRevenue(leastRevenueList.sort((a, b) => a.revenue - b.revenue).slice(0, topPerformersNumber));
 
     const genreTasteIndexAvg = {};
     Object.keys(genreTasteIndexSum).forEach(genre => {
@@ -255,19 +232,6 @@ const Metrics = ({
       .sort((a, b) => b[1] - a[1])
       .reduce((acc, [genre, avg]) => ({ ...acc, [genre]: avg }), {}));
   };
-
-  function formatMoney(revenue) {
-    if (revenue >= 1e9) {
-      return (revenue / 1e9).toFixed(1) + 'Billion USD';
-    } else if (revenue >= 1e6) {
-      return (revenue / 1e6).toFixed(1) + 'Million USD';
-    } else if (revenue >= 1e3) {
-      return (revenue / 1e3).toFixed(0) + 'K USD';
-    } else {
-      return revenue.toFixed(2);
-    }
-  }
-
 
   const handleRatingModeChange = (event) => {
     setRatingMode(event.target.value);
@@ -301,10 +265,6 @@ const Metrics = ({
     setExpandedCollections(!expandedCollections);
   };
 
-  const handleExpandClickBudgetMetrics = () => {
-    setExpandedBudgetMetrics(!expandedBudgetMetrics);
-  };
-
   const handleExpandClickUnderperformers = () => {
     setExpandedUnderperformers(!expandedUnderperformers);
   };
@@ -312,23 +272,6 @@ const Metrics = ({
   const handleExpandClickOverperformers = () => {
     setExpandedOverperformers(!expandedOverperformers);
   };
-
-  const handleExpandClickHighestBudgets = () => {
-    setExpandedHighestBudgets(!expandedHighestBudgets);
-  };
-
-  const handleExpandClickLowestBudgets = () => {
-    setExpandedLowestBudgets(!expandedLowestBudgets);
-  };
-
-  const handleExpandClickMostRevenue = () => {
-    setExpandedMostRevenue(!expandedMostRevenue);
-  };
-
-  const handleExpandClickLeastRevenue = () => {
-    setExpandedLeastRevenue(!expandedLeastRevenue);
-  };
-
 
   return (
     <Box sx={{ my: 4, borderRadius: 1, position: 'relative' }}>
@@ -378,160 +321,183 @@ const Metrics = ({
             style={{ margin: '10px' }} // Adjust styling as needed
           />
         </Box>
-
-        <ExpandableSection
-          title={`Top ${topGenresNumber} Genres:`}
-          items={topGenres.map(([genre, count]) => ({ genre, count }))}
-          itemKey="genre"
-          itemLabel="genre"
-          itemValue="count"
-          headingColor={movieMetricsSubheadingColor}
-          themeMode={themeMode}
-          expanded={expandedGenres}
-          onExpand={handleExpandClickGenres}
-        />
-        <ExpandableSection
-          title={`Top ${topActorsNumber} Actors:`}
-          items={topActors.map(([actor, count]) => ({ actor, count }))}
-          itemKey="actor"
-          itemLabel="actor"
-          itemValue="count"
-          headingColor={movieMetricsSubheadingColor}
-          themeMode={themeMode}
-          expanded={expandedActors}
-          onExpand={handleExpandClickActors}
-        />
-        <ExpandableSection
-          title={`Top ${topDirectorsNumber} Directors:`}
-          items={topDirectors.map(([director, count]) => ({ director, count }))}
-          itemKey="director"
-          itemLabel="director"
-          itemValue="count"
-          headingColor={movieMetricsSubheadingColor}
-          themeMode={themeMode}
-          expanded={expandedDirectors}
-          onExpand={handleExpandClickDirectors}
-        />
-        <ExpandableSection
-          title={`Top ${topProductionCompaniesNumber} Production Companies:`}
-          items={topProductionCompanies.map(([company, count]) => ({ company, count }))}
-          itemKey="company"
-          itemLabel="company"
-          itemValue="count"
-          headingColor={movieMetricsSubheadingColor}
-          themeMode={themeMode}
-          expanded={expandedProductionCompanies}
-          onExpand={handleExpandClickProductionCompanies}
-        />
-        <ExpandableSection
-          title={`Top ${topCollectionsNumber} Collections:`}
-          items={topCollections.map(([collection, count]) => ({ collection, count }))}
-          itemKey="collection"
-          itemLabel="collection"
-          itemValue="count"
-          headingColor={movieMetricsSubheadingColor}
-          themeMode={themeMode}
-          expanded={expandedCollections}
-          onExpand={handleExpandClickCollections}
-        />
-
-        {!hideGenreTasteIndexMetrics && (
-          <ExpandableSection
-            title={`Genre Taste Index:`}
-            items={Object.entries(genreTasteIndexAvg).map(([genre, avgIndex]) => ({ genre, avgIndex }))}
-            itemKey="genre"
-            itemLabel="genre"
-            itemValue="avgIndex"
-            headingColor={movieMetricsSubheadingColor}
-            themeMode={themeMode}
-            expanded={expandedTasteIndex}
-            onExpand={handleExpandClickTasteIndex}
-          />
-        )}
-
-        {!hideBudgetMetrics && (
-          <Box style={{ paddingBottom: '15px' }}>
-            <Box display="flex" >
-              <ExpandMoreIcon
-                onClick={handleExpandClickBudgetMetrics}
-                style={{
-                  color: themeMode === 'dark' ? 'white' : 'inherit', transform: expandedBudgetMetrics ? 'rotate(0deg)' : 'rotate(270deg)',
-                  transition: 'transform 0.3s'
-                }} />
-              <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor, cursor: 'pointer' }} onClick={handleExpandClickBudgetMetrics}>Budget Metrics:</Typography>
-            </Box>
-            <Collapse in={expandedBudgetMetrics} timeout="auto" unmountOnExit>
-              <Box style={{ paddingLeft: '15px' }}>
-                <ExpandableSection
-                  title={`Top ${topPerformersNumber} Underperformers:`}
-                  items={underperformers.map(({ title, ratio }) => ({ title, value: ratio.toFixed(2) }))}
-                  itemKey="title"
-                  itemLabel="title"
-                  itemValue="value"
-                  themeMode={themeMode}
-                  headingColor={budgetMetricsSubheadingColor}
-                  expanded={expandedUnderperformers}
-                  onExpand={handleExpandClickUnderperformers}
-                />
-                <ExpandableSection
-                  title={`Top ${topPerformersNumber} Overperformers:`}
-                  items={overperformers.map(({ title, ratio }) => ({ title, value: ratio.toFixed(2) }))}
-                  itemKey="title"
-                  itemLabel="title"
-                  itemValue="value"
-                  themeMode={themeMode}
-                  headingColor={budgetMetricsSubheadingColor}
-                  expanded={expandedOverperformers}
-                  onExpand={handleExpandClickOverperformers}
-                />
-                <ExpandableSection
-                  title={`Top ${topPerformersNumber} Highest Budgets:`}
-                  items={highestBudgets.map(({ title, budget }) => ({ title, value: formatMoney(budget) }))}
-                  itemKey="title"
-                  itemLabel="title"
-                  itemValue="value"
-                  themeMode={themeMode}
-                  headingColor={budgetMetricsSubheadingColor}
-                  expanded={expandedHighestBudgets}
-                  onExpand={handleExpandClickHighestBudgets}
-                />
-                <ExpandableSection
-                  title={`Top ${topPerformersNumber} Lowest Budgets:`}
-                  items={lowestBudgets.map(({ title, budget }) => ({ title, value: formatMoney(budget) }))}
-                  itemKey="title"
-                  itemLabel="title"
-                  itemValue="value"
-                  themeMode={themeMode}
-                  headingColor={budgetMetricsSubheadingColor}
-                  expanded={expandedLowestBudgets}
-                  onExpand={handleExpandClickLowestBudgets}
-                />
-                <ExpandableSection
-                  title={`Top ${topPerformersNumber} Most Revenue:`}
-                  items={mostRevenue.map(({ title, revenue }) => ({ title, value: formatMoney(revenue) }))}
-                  itemKey="title"
-                  itemLabel="title"
-                  itemValue="value"
-                  themeMode={themeMode}
-                  headingColor={budgetMetricsSubheadingColor}
-                  expanded={expandedMostRevenue}
-                  onExpand={handleExpandClickMostRevenue}
-                />
-                <ExpandableSection
-                  title={`Top ${topPerformersNumber} Least Revenue:`}
-                  items={leastRevenue.map(({ title, revenue }) => ({ title, value: formatMoney(revenue) }))}
-                  itemKey="title"
-                  itemLabel="title"
-                  itemValue="value"
-                  themeMode={themeMode}
-                  headingColor={budgetMetricsSubheadingColor}
-                  expanded={expandedLeastRevenue}
-                  onExpand={handleExpandClickLeastRevenue}
-                />
-              </Box>
-            </Collapse>
+        <Box style={{ paddingBottom: '15px' }}>
+          <Box display="flex" >
+            <ExpandMoreIcon
+              onClick={handleExpandClickGenres}
+              style={{
+                color: themeMode === 'dark' ? 'white' : 'inherit', transform: expandedGenres ? 'rotate(0deg)' : 'rotate(270deg)',
+                transition: 'transform 0.3s'
+              }} />
+            <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor, cursor: 'pointer' }} onClick={handleExpandClickGenres}>Top {topGenresNumber} Genres:</Typography>
           </Box>
-        )}
+          <Collapse in={expandedGenres} timeout="auto" unmountOnExit>
+            <Grid container spacing={2}>
+              {topGenres.map(([genre, count], index) => (
+                <Grid item key={genre}>
+                  <Typography variant="body1" style={{ color: 'inherit' }}>
+                    {index + 1}. {genre}: {count}
+                  </Typography>
+                </Grid>
+              ))}
+            </Grid>
+          </Collapse>
+        </Box>
+        <Box style={{ paddingBottom: '15px' }}>
+          <Box display="flex" >
+            <ExpandMoreIcon
+              onClick={handleExpandClickActors}
+              style={{
+                color: themeMode === 'dark' ? 'white' : 'inherit', transform: expandedActors ? 'rotate(0deg)' : 'rotate(270deg)',
+                transition: 'transform 0.3s'
+              }} />
+            <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor, cursor: 'pointer' }} onClick={handleExpandClickActors}>Top {topActorsNumber} Actors:</Typography>
+          </Box>
+          <Collapse in={expandedActors} timeout="auto" unmountOnExit>
+            <Grid container spacing={2}>
+              {topActors.map(([actor, count], index) => (
+                <Grid item key={actor}>
+                  <Typography variant="body1" style={{ color: 'inherit' }}>
+                    {index + 1}. {actor}: {count}
+                  </Typography>
+                </Grid>
+              ))}
+            </Grid>
+          </Collapse>
+        </Box>
+        <Box style={{ paddingBottom: '15px' }}>
+          <Box display="flex" >
+            <ExpandMoreIcon
+              onClick={handleExpandClickDirectors}
+              style={{
+                color: themeMode === 'dark' ? 'white' : 'inherit', transform: expandedDirectors ? 'rotate(0deg)' : 'rotate(270deg)',
+                transition: 'transform 0.3s'
+              }} />
+            <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor, cursor: 'pointer' }} onClick={handleExpandClickDirectors}>Top {topDirectorsNumber} Directors:</Typography>
+          </Box>
+          <Collapse in={expandedDirectors} timeout="auto" unmountOnExit>
+            <Grid container spacing={2}>
+              {topDirectors.map(([director, count], index) => (
+                <Grid item key={director}>
+                  <Typography variant="body1" style={{ color: 'inherit' }}>
+                    {index + 1}. {director}: {count}
+                  </Typography>
+                </Grid>
+              ))}
+            </Grid>
+          </Collapse>
+        </Box>
+        <Box style={{ paddingBottom: '15px' }}>
+          <Box display="flex">
+            <ExpandMoreIcon
+              onClick={handleExpandClickProductionCompanies}
+              style={{
+                color: themeMode === 'dark' ? 'white' : 'inherit', transform: expandedProductionCompanies ? 'rotate(0deg)' : 'rotate(270deg)',
+                transition: 'transform 0.3s'
+              }} />
+            <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor, cursor: 'pointer' }} onClick={handleExpandClickProductionCompanies}>Top {topProductionCompaniesNumber} Production Companies:</Typography>
+          </Box>
+          <Collapse in={expandedProductionCompanies} timeout="auto" unmountOnExit>
+            <Grid container spacing={2}>
+              {topProductionCompanies.map(([company, count], index) => (
+                <Grid item key={company}>
+                  <Typography variant="body1" style={{ color: 'inherit' }}>
+                    {index + 1}. {company}: {count}
+                  </Typography>
+                </Grid>
+              ))}
+            </Grid>
+          </Collapse>
+        </Box>
+
+        <Box style={{ paddingBottom: '15px' }}>
+          <Box display="flex" >
+            <ExpandMoreIcon
+              onClick={handleExpandClickCollections}
+              style={{
+                color: themeMode === 'dark' ? 'white' : 'inherit', transform: expandedCollections ? 'rotate(0deg)' : 'rotate(270deg)',
+                transition: 'transform 0.3s'
+              }} />
+            <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor, cursor: 'pointer' }} onClick={handleExpandClickCollections}>Top {topCollectionsNumber} Collections:</Typography>
+          </Box>
+          <Collapse in={expandedCollections} timeout="auto" unmountOnExit>
+            <Grid container spacing={2}>
+              {topCollections.map(([collection, count], index) => (
+                <Grid item key={collection}>
+                  <Typography variant="body1" style={{ color: 'inherit' }}>
+                    {index + 1}. {collection}: {count}
+                  </Typography>
+                </Grid>
+              ))}
+            </Grid>
+          </Collapse>
+        </Box>
+        <Box style={{ paddingBottom: '15px' }}>
+          <Box display="flex" >
+            <ExpandMoreIcon
+              onClick={handleExpandClickUnderperformers}
+              style={{
+                color: themeMode === 'dark' ? 'white' : 'inherit', transform: expandedUnderperformers ? 'rotate(0deg)' : 'rotate(270deg)',
+                transition: 'transform 0.3s'
+              }} />
+            <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor, cursor: 'pointer' }} onClick={handleExpandClickUnderperformers}>Top {topPerformersNumber} Underperformers:</Typography>
+          </Box>
+          <Collapse in={expandedUnderperformers} timeout="auto" unmountOnExit>
+            <Grid container spacing={2}>
+              {underperformers.map(({ title, ratio }, index) => (
+                <Grid item key={title}>
+                  <Typography variant="body1" style={{ color: 'inherit' }}>
+                    {index + 1}. {title}: {ratio.toFixed(2)}
+                  </Typography>
+                </Grid>
+              ))}
+            </Grid>
+          </Collapse>
+        </Box>
+        <Box style={{ paddingBottom: '15px' }}>
+          <Box display="flex" >
+            <ExpandMoreIcon
+              onClick={handleExpandClickOverperformers}
+              style={{
+                color: themeMode === 'dark' ? 'white' : 'inherit', transform: expandedOverperformers ? 'rotate(0deg)' : 'rotate(270deg)',
+                transition: 'transform 0.3s'
+              }} />
+            <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor, cursor: 'pointer' }} onClick={handleExpandClickOverperformers}>Top {topPerformersNumber} Overperformers:</Typography>
+          </Box>
+          <Collapse in={expandedOverperformers} timeout="auto" unmountOnExit>
+            <Grid container spacing={2}>
+              {overperformers.map(({ title, ratio }, index) => (
+                <Grid item key={title}>
+                  <Typography variant="body1" style={{ color: 'inherit' }}>
+                    {index + 1}. {title}: {ratio.toFixed(2)}
+                  </Typography>
+                </Grid>
+              ))}
+            </Grid>
+          </Collapse>
+        </Box>
+        <Box style={{ paddingBottom: '15px' }}>
+          <Box display="flex" >
+            <ExpandMoreIcon
+              onClick={handleExpandClickTasteIndex}
+              style={{
+                color: themeMode === 'dark' ? 'white' : 'inherit', transform: expandedTasteIndex ? 'rotate(0deg)' : 'rotate(270deg)',
+                transition: 'transform 0.3s'
+              }} />
+            <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor, cursor: 'pointer' }} onClick={handleExpandClickTasteIndex}>Genre Taste Index:</Typography>
+          </Box>
+          <Collapse in={expandedTasteIndex} timeout="auto" unmountOnExit>
+            <Grid container spacing={2}>
+              {Object.entries(genreTasteIndexAvg).map(([genre, avgIndex], index) => (
+                <Grid item key={genre}>
+                  <Typography variant="body1" style={{ color: 'inherit' }}>
+                    {index + 1}. {genre}: {avgIndex}
+                  </Typography>
+                </Grid>
+              ))}
+            </Grid>
+          </Collapse>
+        </Box>
         <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor }}>Total Movie Watching Time: {totalDuration}</Typography>
       </Collapse>
     </Box>

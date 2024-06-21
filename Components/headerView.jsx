@@ -14,11 +14,11 @@ import SortFilter from './sortFilter';
 import AddNew from './addNew';
 import MovieTypeFilter from './typeFilter';
 import MovieSelectPopUp from './movieSelectPopUp';
-import { Platform, requestUrl } from "obsidian";
+import { Platform, requestUrl, Notice } from "obsidian";
 
 
 
-const Header = ({ movieProperties, selectedProperties, handlePropertyChange, selectedRating, handleRatingChange, genres, selectedGenres, handleGenreChange, selectedTypes, handleTypeChange, createMarkdownFile, handleSortChange, sortOption, sortOrder, toggleSortOrder, themeMode, plugin }) => {
+const Header = ({ showTrailerAndPosterLinks, movieProperties, handleClearAllFilters, selectedProperties, handlePropertyChange, selectedRating, handleRatingChange, genres, selectedGenres, handleGenreChange, selectedTypes, handleTypeChange, createMarkdownFile, handleSortChange, sortOption, sortOrder, toggleSortOrder, themeMode, plugin }) => {
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -73,7 +73,7 @@ const Header = ({ movieProperties, selectedProperties, handlePropertyChange, sel
 
     try {
       // Fetch detailed movie information for the selected movie
-      const detailsUrl = `https://api.themoviedb.org/3/${detailsType}/${selectedItem.id}?api_key=${plugin.settings.apiKey}`;
+      const detailsUrl = `https://api.themoviedb.org/3/${detailsType}/${selectedItem.id}?api_key=${plugin.settings.apiKey}&append_to_response=videos`;
       const detailsResponse = await requestUrl({
         url: detailsUrl,
         method: 'GET',
@@ -89,7 +89,35 @@ const Header = ({ movieProperties, selectedProperties, handlePropertyChange, sel
       const creditsData = await creditsResponse.json;
       const directors = creditsData.crew.filter(member => member.job === 'Director').map(director => director.name).join(', ');
 
+      const originalLanguage = detailsData.original_language;
+      const overview = detailsData.overview;
 
+      let productionCompanies = '';
+      if (detailsData.production_companies && detailsData.production_companies.length > 0) {
+        productionCompanies = detailsData.production_companies.slice(0, 2).map(company => company.name).join(', ');
+      }
+
+      let trailer = '';
+      if (detailsData.videos && detailsData.videos.results.length > 0) {
+        const trailerData = detailsData.videos.results.find(video => video.type === 'Trailer');
+        if (trailerData) {
+          trailer = `https://www.youtube.com/watch?v=${trailerData.key}`;
+        }
+      }
+
+      const posterLink = `https://image.tmdb.org/t/p/original${detailsData.poster_path}`;
+
+      let budget = null;
+      let revenue = null;
+      let belongsToCollection = null;
+
+      if (!isTvShow) {
+        budget = detailsData.budget;
+        revenue = detailsData.revenue;
+        belongsToCollection = detailsData.belongs_to_collection ? detailsData.belongs_to_collection.name : null;
+      }
+
+      const escapeDoubleQuotes = (str) => str.replace(/"/g, '\\"');
       const movieYAML = `---
 Title: "${detailsData.title || detailsData.name}" 
 Rating: ${selectedMovieState.rating}
@@ -104,13 +132,32 @@ Cast: "${creditsData.cast.slice(0, 10).map(member => member.name).join(', ')}"
 TMDB ID: ${selectedItem.id}
 Director: "${directors}"
 tags: "tvtracker, ${selectedMovieState.type}"
+original_language: "${originalLanguage}"
+overview: "${escapeDoubleQuotes(overview)}"
+trailer: "${trailer}"
+budget: ${budget}
+revenue: ${revenue}
+belongs_to_collection: ${belongsToCollection ? `"${belongsToCollection}"` : '""'}
+production_company: "${productionCompanies}"
 ---`;
+
+      let content = movieYAML;
+
+      if (showTrailerAndPosterLinks) {
+        if (detailsData.poster_path) {
+          content += `\n![Poster](${posterLink})`;
+        }
+        if (trailer != '') {
+          content += `\n![Trailer](${trailer})`;
+        }
+      }
 
       const title = detailsData.title || detailsData.name; // TV shows use 'name' instead of 'title'
       const fileName = `${title.replace(/[\/\\:]/g, '_')}`; // Sanitize title for filename
-      await createMarkdownFile(fileName, movieYAML);
-
+      await createMarkdownFile(fileName, content);
+      new Notice('Successfully added. Please restart plugin to view it in the library');
     } catch (error) {
+      new Notice('Error: Could not add movie');
       console.error('Error processing the selected movie:', error);
     }
 
@@ -168,6 +215,15 @@ tags: "tvtracker, ${selectedMovieState.type}"
           handleTypeChange={handleTypeChange}
         />
       </Box>
+      <Box mb={2}>
+        <Button variant="contained" onClick={handleClearAllFilters} style={{
+          color: 'inherit', maxWidth: '100px', height: 'auto',
+          whiteSpace: 'wrap',
+          overflow: 'hidden',
+          padding: '8px 8px',
+          fontSize: '10px'
+        }}>Clear All filters</Button>
+      </Box>
     </>
   );
 
@@ -184,7 +240,13 @@ tags: "tvtracker, ${selectedMovieState.type}"
           <Button onClick={handleErrorClose}>Close</Button>
         </DialogActions>
       </Dialog>
-      <Button sx={{ color: 'inherit' }} onClick={handleOpenAddDialog}>Add New</Button>
+      <Button sx={{
+        color: 'inherit', maxWidth: '120px', height: 'auto',
+        whiteSpace: 'wrap',
+        overflow: 'hidden',
+        padding: '8px 8px',
+        fontSize: '12px'
+      }} onClick={handleOpenAddDialog}>Add New</Button>
       <AddNew
         open={addDialogOpen}
         handleClose={handleCloseAddDialog}
