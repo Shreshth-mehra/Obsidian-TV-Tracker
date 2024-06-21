@@ -1,7 +1,7 @@
 {
 	"id": "tv-tracker",
 	"name": "Movie and TV show tracker",
-	"version": "1.3.0",
+	"version": "1.3.1",
 	"minAppVersion": "0.15.0",
 	"description": "A Movie and TV show tracker.",
 	"author": "Shreshth Mehra",

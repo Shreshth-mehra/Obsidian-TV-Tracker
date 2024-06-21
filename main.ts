@@ -122,12 +122,13 @@ export default class TVTrackerPlugin extends Plugin {
 		if (!movieFolder || !(movieFolder as any).children) return;
 	
 		const files = (movieFolder as any).children.filter((file: any) => file.extension === 'md');
-		console.log(`Number of Markdown files found: ${files.length}`);
+		// console.log(`Number of Markdown files found: ${files.length}`);
 	
 		let iteration = 0;
 		let successCount = 0;
 		let errorCount = 0;
-	
+		const removeLinksNotice = new Notice(`Processed files: ${successCount}/${files.length}\n Errors: ${errorCount}`, 0);
+
 		for (const file of files) {
 			iteration += 1;
 			console.log(`\nProcessing file ${file.path}`);
@@ -169,9 +170,12 @@ export default class TVTrackerPlugin extends Plugin {
 				console.error(`Failed to update file ${file.path}`, error);
 				errorCount++;
 			}
-		}
-	
-		new Notice(`Files processed: ${iteration}, Success: ${successCount}, Errors: ${errorCount}`);
+		
+			removeLinksNotice.setMessage(`Processed files: ${successCount}/${files.length}\n Errors: ${errorCount}`);
+	}
+
+	removeLinksNotice.setMessage(`Processising complete. Files processed: ${iteration}, Success: ${successCount}, Errors: ${errorCount}`);;
+	setTimeout(() => removeLinksNotice.hide(), 3000);
 	}
 	
 
@@ -180,11 +184,12 @@ export default class TVTrackerPlugin extends Plugin {
         if (!movieFolder || !(movieFolder as any).children) return;
 
         const files = (movieFolder as any).children.filter((file: any) => file.extension === 'md');
-        console.log(`Number of Markdown files found: ${files.length}`);
-
+        // console.log(`Number of Markdown files found: ${files.length}`);
+		
         let iteration = 0;
         let successCount = 0;
         let errorCount = 0;
+		const addLinksNotice = new Notice(`Processed files: ${successCount}/${files.length}\n Errors: ${errorCount}`, 0);
 
         for (const file of files) {
             iteration = iteration + 1;
@@ -225,15 +230,19 @@ export default class TVTrackerPlugin extends Plugin {
 			if (poster || trailer) {
 				await this.app.vault.modify(file, newContent);
 				successCount++;
+				
 			} 
 			else {
 				new Notice(`Error with reading Poster or Trailer: ${file.path}`);
 				console.log(`Error with reading Poster or Trailer: ${file.path}`);
                 errorCount++;
             }
+
+			addLinksNotice.setMessage(`Processed files: ${successCount}/${files.length}\n Errors: ${errorCount}`);
         }
 
-        new Notice(`Files processed: ${iteration}, Success: ${successCount}, Errors: ${errorCount}`);
+		addLinksNotice.setMessage(`Processising complete. Files processed: ${iteration}, Success: ${successCount}, Errors: ${errorCount}`);;
+		setTimeout(() => addLinksNotice.hide(), 3000);
     }
 
 
@@ -247,6 +256,7 @@ export default class TVTrackerPlugin extends Plugin {
 		let iteration = 0;
 		let successCount = 0;
     let errorCount = 0;
+	const updateFilesNotice = new Notice(`Processed files: ${successCount}/${files.length}\n Errors: ${errorCount}`, 0);
         for (const file of files) {
 			iteration = iteration +1;
 			// console.log("");
@@ -360,11 +370,12 @@ export default class TVTrackerPlugin extends Plugin {
 			}
     
 			
-       
+       updateFilesNotice.setMessage(`Processed files: ${successCount}/${files.length}\n Errors: ${errorCount}`);
         }
 
-        new Notice(`Original language updated for ${successCount} files. ${errorCount} files encountered errors.`);
-    }
+        updateFilesNotice.setMessage(`Processising Complete. New properties added for ${successCount} files. ${errorCount} files encountered errors.`);
+		setTimeout(() => updateFilesNotice.hide(), 3000);
+	}
 
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_TV_SETTINGS, await this.loadData());
