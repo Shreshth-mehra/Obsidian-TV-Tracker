@@ -12,6 +12,7 @@ import Metrics from './Components/metricsView';
 import { Platform, Notice } from "obsidian";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DiscoverPopup from './Components/discoverView'
+import { SolarPower } from "@mui/icons-material";
 
 function useDebounce(value, delay) {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -52,7 +53,7 @@ const genreList = [
   { "id": 37, "name": "Western" }
 ];
 
-export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin }) => {
+export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, validLanguages }) => {
   // Change movie state to movies, which will be an array
   const [movies, setMovies] = useState([moviesData || []]);
   const [filteredMovies, setFilteredMovies] = useState([]);
@@ -67,12 +68,16 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
   const [sortOption, setSortOption] = useState('Rating');
   const [sortOrder, setSortOrder] = useState('descending');
   const [showDiscoverPopup, setShowDiscoverPopup] = useState(false);
-  const [selectedLanguages, setSelectedLanguages] = useState([]);
+  const [selectedLanguages, setSelectedLanguages] = useState(validLanguages);
   const [debugInfo, setDebugInfo] = useState('Should not be this');
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const isMobile = Platform.isMobile;
+  const availableLanguages = Array.from(new Set(movies.map(movie => movie.original_language)));
+  // const languagesFromSettings = plugin.settings.defaultLanguageFilters.split(',').map(lang => lang.trim());
+  // const validLanguages = languagesFromSettings.filter(lang => availableLanguages.includes(lang));
+
 
   const openDiscoverPopup = () => setShowDiscoverPopup(true);
 
@@ -140,6 +145,15 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
     setSortOrder(sortOrder === 'ascending' ? 'descending' : 'ascending');
   };
 
+  // useEffect(() => {
+  //   // This effect runs only once on mount
+  //   console.log("Me");
+  //   const languagesFromSettings = plugin.settings.defaultLanguageFilters.split(',').map(lang => lang.trim());
+  //   const validLanguages = languagesFromSettings.filter(lang => availableLanguages.includes(lang));
+  //   setSelectedLanguages(validLanguages);
+
+
+  // }, []);
 
   useEffect(() => {
 
@@ -151,10 +165,12 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
       Object.keys(movie).forEach(key => propertiesSet.add(key));
     });
     setMovieProperties(Array.from(propertiesSet));
-    parseAndSetSelectedLanguages();
+    // parseAndSetSelectedLanguages();
     applyFilters();
 
   }, [movies, selectedGenres, selectedTypes, selectedRating, debouncedSearchTerm, sortOption, showWatchlist, sortOrder, selectedLanguages]);
+
+
 
   const handlePropertyChange = (event) => {
     const {
@@ -214,13 +230,8 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
     setFilteredMovies(sortedMovies);
   };
 
-  const availableLanguages = Array.from(new Set(movies.map(movie => movie.original_language)));
 
-  const parseAndSetSelectedLanguages = () => {
-    const languagesFromSettings = plugin.settings.defaultLanguageFilters.split(',').map(lang => lang.trim());
-    const validLanguages = languagesFromSettings.filter(lang => availableLanguages.includes(lang));
-    setSelectedLanguages(validLanguages);
-  };
+
 
   const languageFilteredMovies = movies.filter(movie => selectedLanguages.length === 0 || selectedLanguages.includes(movie.original_language));
 

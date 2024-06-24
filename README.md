@@ -2,7 +2,7 @@
 
 Movie and TV show tracker plugin for Obsidian
 
-# New in v1.3.2 (from 1.2.0)
+# New in v1.3.3 (from 1.2.0)
 
 -   Added more properties ( You can update the existing files from the settings)
 
