@@ -29,6 +29,8 @@ interface TVTrackerSettings {
 	budgetMetricsSubheadingColor: string;
     movieCardColor: string;
 	metricsHeading: string;
+	defaultLanguageFilters: string;
+	defaultPropertiesToShow: string;
 	
 }
 
@@ -58,7 +60,9 @@ const DEFAULT_TV_SETTINGS: TVTrackerSettings = {
 	budgetMetricsSubheadingColor: '#DB6FFC',
 	movieCardColor: 'inherit',
 	metricsHeading: 'For Number geeks',
-	showTrailerAndPosterLinks: true
+	showTrailerAndPosterLinks: true,
+	defaultLanguageFilters: '',
+	defaultPropertiesToShow: ''
 }
 
 export default class TVTrackerPlugin extends Plugin {
@@ -455,6 +459,27 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 					this.plugin.settings.imageFolderPath = value;
 					await this.plugin.saveSettings();
 				}));
+
+				new Setting(containerEl)
+				.setName('Default language filters')
+				.setDesc('Enter Language codes separated by comma here. Entered values are selected by default when the plugin is started. For example "en, fr, es".')
+				.addText(text => text
+					.setValue(this.plugin.settings.defaultLanguageFilters)
+					.onChange(async (value) => {
+						this.plugin.settings.defaultLanguageFilters = value;
+						await this.plugin.saveSettings();
+					}));
+
+					new Setting(containerEl)
+					.setName('Default Properties to show (IN PROGRESS)')
+					.setDesc('Enter property names separated by comma here. Entered values are are shown on the cards by default when the plugin is started. For example "Genre, Avg Vote"')
+					.addText(text => text
+						.setValue(this.plugin.settings.defaultPropertiesToShow)
+						.onChange(async (value) => {
+							this.plugin.settings.defaultPropertiesToShow = value;
+							await this.plugin.saveSettings();
+						}));
+	
 
 				new Setting(containerEl)
 				.setName('Hide Legend')

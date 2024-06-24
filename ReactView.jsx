@@ -67,6 +67,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
   const [sortOption, setSortOption] = useState('Rating');
   const [sortOrder, setSortOrder] = useState('descending');
   const [showDiscoverPopup, setShowDiscoverPopup] = useState(false);
+  const [selectedLanguages, setSelectedLanguages] = useState([]);
   const [debugInfo, setDebugInfo] = useState('Should not be this');
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -75,7 +76,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
 
   const openDiscoverPopup = () => setShowDiscoverPopup(true);
 
-  // Handler for closing the Discover popup
+
   const closeDiscoverPopup = () => setShowDiscoverPopup(false);
 
   const handleClearFilters = () => {
@@ -84,6 +85,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
     setSelectedTypes([]);
     setSelectedRating(1);
     setShowWatchlist(false);
+    setSelectedLanguages([]); // Set this to default selected languages from settings instead
   };
 
   const handleGenreChange = (event) => {
@@ -95,7 +97,10 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
 
   };
 
-
+  const handleLanguageChange = (event) => {
+    const { value } = event.target;
+    setSelectedLanguages(typeof value === 'string' ? value.split(',') : value);
+  };
 
   const handleTypeChange = (event) => {
     const {
@@ -146,10 +151,10 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
       Object.keys(movie).forEach(key => propertiesSet.add(key));
     });
     setMovieProperties(Array.from(propertiesSet));
-
+    parseAndSetSelectedLanguages();
     applyFilters();
 
-  }, [movies, selectedGenres, selectedTypes, selectedRating, debouncedSearchTerm, sortOption, showWatchlist, sortOrder]);
+  }, [movies, selectedGenres, selectedTypes, selectedRating, debouncedSearchTerm, sortOption, showWatchlist, sortOrder, selectedLanguages]);
 
   const handlePropertyChange = (event) => {
     const {
@@ -196,8 +201,8 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
         const matchesType = selectedTypes.length === 0 || selectedTypes.includes(movie.Type);
         const matchesRating = movie.Rating >= selectedRating;
         const matchesWatchlist = !showWatchlist || movie.Status === 'Watchlist';
-
-        return matchesGenre && matchesType && matchesRating && (matchesTitle || matchesCast || matchesDirector || matchesProductionComapny) && matchesWatchlist;
+        const matchesLanguage = selectedLanguages.length === 0 || selectedLanguages.includes(movie.original_language);
+        return matchesGenre && matchesType && matchesRating && matchesLanguage && (matchesTitle || matchesCast || matchesDirector || matchesProductionComapny) && matchesWatchlist;
       } catch (error) {
         new Notice(`Error processing movie ${movie.Title}. Showing rest of the results. Please console for detailed error`);
         console.error(`Error processing movie ${movie.Title}: ${error.message}`);
@@ -209,10 +214,16 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
     setFilteredMovies(sortedMovies);
   };
 
-  // Check if movies are still being fetched
-  // if (!movies || movies.length === 0) {
-  //   return <div> No movie or tv show titles found in the folder {plugin.settings.movieFolderPath}</div>;
-  // }
+  const availableLanguages = Array.from(new Set(movies.map(movie => movie.original_language)));
+
+  const parseAndSetSelectedLanguages = () => {
+    const languagesFromSettings = plugin.settings.defaultLanguageFilters.split(',').map(lang => lang.trim());
+    const validLanguages = languagesFromSettings.filter(lang => availableLanguages.includes(lang));
+    setSelectedLanguages(validLanguages);
+  };
+
+  const languageFilteredMovies = movies.filter(movie => selectedLanguages.length === 0 || selectedLanguages.includes(movie.original_language));
+
 
   // Render each movie in the grid
   return (
@@ -240,6 +251,9 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
         themeMode={themeMode}
         plugin={plugin}
         handleClearAllFilters={handleClearFilters}
+        handleLanguageChange={handleLanguageChange}
+        selectedLanguages={selectedLanguages}
+        availableLanguages={availableLanguages}
       />
       <Box style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <TextField
@@ -277,6 +291,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
           }}
         />
 
+
         <FormControlLabel
           control={
             <Checkbox
@@ -292,6 +307,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
         { flexGrow: 1, padding: '20px' }}>
         Showing {filteredMovies.length} results
       </Typography>
+
       <Box style={{ padding: '10px', marginBottom: '10px' }}>
         <Button variant="contained" onClick={openDiscoverPopup} style={{ color: 'inherit' }}>Discover</Button>
       </Box>
@@ -332,7 +348,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin })
         </Box>
       )}
       {!plugin.settings.hideMetrics && (
-        <Metrics movies={movies} budgetMetricsSubheadingColor={plugin.settings.budgetMetricsSubheadingColor} hideBudgetMetrics={plugin.settings.hideBudgetMetrics} hideGenreTasteIndexMetrics={plugin.settings.hideGenreTasteIndexMetrics} topActorsNumber={plugin.settings.topActorsNumber} topCollectionsNumber={plugin.settings.topCollectionsNumber} topPerformersNumber={plugin.settings.topPerformersNumber} topGenresNumber={plugin.settings.topGenresNumber} topDirectorsNumber={plugin.settings.topDirectorsNumber} topProductionCompaniesNumber={plugin.settings.topProductionCompaniesNumber} minMoviesForMetrics={plugin.settings.minMoviesForMetrics} minMoviesForMetricsCollections={plugin.settings.minMoviesForMetricsCollections} minMoviesForMetricsDirectors={plugin.settings.minMoviesForMetricsDirectors} movieMetricsHeadingColor={plugin.settings.movieMetricsHeadingColor} movieMetricsSubheadingColor={plugin.settings.movieMetricsSubheadingColor} themeMode={themeMode} metricsHeading={plugin.settings.metricsHeading} />
+        <Metrics movies={languageFilteredMovies} budgetMetricsSubheadingColor={plugin.settings.budgetMetricsSubheadingColor} hideBudgetMetrics={plugin.settings.hideBudgetMetrics} hideGenreTasteIndexMetrics={plugin.settings.hideGenreTasteIndexMetrics} topActorsNumber={plugin.settings.topActorsNumber} topCollectionsNumber={plugin.settings.topCollectionsNumber} topPerformersNumber={plugin.settings.topPerformersNumber} topGenresNumber={plugin.settings.topGenresNumber} topDirectorsNumber={plugin.settings.topDirectorsNumber} topProductionCompaniesNumber={plugin.settings.topProductionCompaniesNumber} minMoviesForMetrics={plugin.settings.minMoviesForMetrics} minMoviesForMetricsCollections={plugin.settings.minMoviesForMetricsCollections} minMoviesForMetricsDirectors={plugin.settings.minMoviesForMetricsDirectors} movieMetricsHeadingColor={plugin.settings.movieMetricsHeadingColor} movieMetricsSubheadingColor={plugin.settings.movieMetricsSubheadingColor} themeMode={themeMode} metricsHeading={plugin.settings.metricsHeading} />
       )}
       <DiscoverPopup
         open={showDiscoverPopup}

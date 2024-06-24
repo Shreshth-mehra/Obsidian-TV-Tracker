@@ -6,7 +6,7 @@ import { Platform } from "obsidian";
 const MovieRatingFilter = ({ selectedRating, handleRatingChange }) => {
   const isMobile = Platform.isMobile;
   return (
-    <FormControl variant="outlined" sx={{ width: isMobile ? '70%' : '100px', '.MuiOutlinedInput-notchedOutline': { borderColor: 'inherit' } }}>
+    <FormControl variant="outlined" sx={{ width: isMobile ? '70%' : '5vw', '.MuiOutlinedInput-notchedOutline': { borderColor: 'inherit' } }}>
       <InputLabel htmlFor="rating-dropdown" sx={{ color: 'inherit' }}>Rating</InputLabel>
       <Select
         id="rating-dropdown"
@@ -15,7 +15,7 @@ const MovieRatingFilter = ({ selectedRating, handleRatingChange }) => {
         onChange={handleRatingChange}
         sx={{
           color: 'inherit',
-          '& .MuiSelect-select': { paddingLeft: '14px' },
+          '& .MuiSelect-select': { paddingLeft: '5px' },
           '& .MuiOutlinedInput-notchedOutline': { borderColor: 'inherit' },
           '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'inherit' },
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'inherit' },

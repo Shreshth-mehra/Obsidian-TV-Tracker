@@ -2,7 +2,7 @@
 
 Movie and TV show tracker plugin for Obsidian
 
-# New in v1.3.0
+# New in v1.3.2 (from 1.2.0)
 
 -   Added more properties ( You can update the existing files from the settings)
 
@@ -24,6 +24,7 @@ Movie and TV show tracker plugin for Obsidian
    c. Under and Over Performer (Ratio of Revenue to Budget)
 
 -   Added Clear all filters button
+-   Added Language filters
 -   Can search using Production companies now
 -   Improved Error handling and Notices
 
@@ -89,6 +90,8 @@ There are 4 options to choose from for deciding the metric for Top in each categ
 4. Avg Rating - Avg rating for the person/genre if they have a minimum number of titles (This number can be changed from settings)
 
 Genre taste index is the ration of User rating to public rating for each of the title in that genre. So, if your genre taste index for Documentries is 1.2 that means that you rate documentary movies 1.2 times higher on average than public ratings. Keep in mind that the public ratings are fetched from TMDB and are on a scale of 1 to 10. The user rating is multiplied by 2 for this calculation to be on the same scale. Additionally, the rating mode does not affect this metric.
+
+Setting Language filter also changes the metrics. For example, if you have English (en) and Spanish (es) movies in your vault and 'en' filter is applied then the metrics will only include movies with original_language as 'en'
 
 ## Settings
 

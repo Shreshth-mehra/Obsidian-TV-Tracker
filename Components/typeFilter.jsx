@@ -7,7 +7,7 @@ const MovieTypeFilter = ({ selectedTypes, handleTypeChange }) => {
   const types = ["Movie", "Series"];  // Define the types available for selection
   const isMobile = Platform.isMobile;
   return (
-    <FormControl variant="outlined" sx={{ width: isMobile ? '70%' : '10vw', '.MuiOutlinedInput-notchedOutline': { borderColor: 'inherit' } }}>
+    <FormControl variant="outlined" sx={{ width: isMobile ? '70%' : '6vw', '.MuiOutlinedInput-notchedOutline': { borderColor: 'inherit' } }}>
       <InputLabel sx={{ color: 'inherit' }}>Type</InputLabel>
       <Select
         labelId="type-mutiple-checkbox-label"

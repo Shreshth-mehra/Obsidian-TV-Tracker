@@ -13,7 +13,7 @@ const DiscoverPopup = ({ open, onClose, genres, movies, themeMode, movieCardColo
     const [selectedLogicalOperator, setSelectedLogicalOperator] = useState('OR');
     const [recommendations, setRecommendations] = useState([]);
     const [showRecommendations, setShowRecommendations] = useState(false);
-    const [selectedCountry, setSelectedCountry] = useState('CA');
+    // const [selectedCountry, setSelectedCountry] = useState('CA');
 
     const applyFilters = () => {
         const filtered = movies.filter(movie => {

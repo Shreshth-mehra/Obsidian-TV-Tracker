@@ -6,7 +6,7 @@ import { Platform } from "obsidian";
 const MoviePropertiesFilter = ({ movieProperties, selectedProperties, handlePropertyChange }) => {
   const isMobile = Platform.isMobile;
   return (
-    <FormControl variant="outlined" sx={{ width: isMobile ? '70%' : '10vw', '.MuiOutlinedInput-notchedOutline': { borderColor: 'inherit' } }}>
+    <FormControl variant="outlined" sx={{ width: isMobile ? '70%' : '8vw', '.MuiOutlinedInput-notchedOutline': { borderColor: 'inherit' } }}>
       <InputLabel sx={{ color: 'inherit' }}>Properties</InputLabel>
       <Select
         multiple
@@ -18,13 +18,13 @@ const MoviePropertiesFilter = ({ movieProperties, selectedProperties, handleProp
           PaperProps: {
             style: {
               maxHeight: 224,
-              width: 150,
+              width: 200,
             },
           },
         }}
         sx={{
           color: 'inherit',
-          '& .MuiSelect-select': { paddingLeft: '14px' },
+          '& .MuiSelect-select': { paddingLeft: '5px' },
           '& .MuiOutlinedInput-notchedOutline': { borderColor: 'inherit' },
           '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'inherit' },
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'inherit' },

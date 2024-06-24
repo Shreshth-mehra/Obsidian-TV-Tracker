@@ -1,6 +1,6 @@
 // Header.jsx
 import React, { useState } from 'react';
-import { Box, IconButton, Drawer, Typography, Button, Grid, Checkbox, Container, FormControl, InputLabel, Select, MenuItem, ListItemText, OutlinedInput } from "@mui/material";
+import { Box, IconButton, Drawer, Typography, Button, Grid, Container } from "@mui/material";
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -18,7 +18,7 @@ import { Platform, requestUrl, Notice } from "obsidian";
 
 
 
-const Header = ({ showTrailerAndPosterLinks, movieProperties, handleClearAllFilters, selectedProperties, handlePropertyChange, selectedRating, handleRatingChange, genres, selectedGenres, handleGenreChange, selectedTypes, handleTypeChange, createMarkdownFile, availableLanguages, handleSortChange, sortOption, sortOrder, toggleSortOrder, themeMode, plugin, selectedLanguages, handleLanguageChange }) => {
+const Header = ({ showTrailerAndPosterLinks, movieProperties, handleClearAllFilters, selectedProperties, handlePropertyChange, selectedRating, handleRatingChange, genres, selectedGenres, handleGenreChange, selectedTypes, handleTypeChange, createMarkdownFile, handleSortChange, sortOption, sortOrder, toggleSortOrder, themeMode, plugin }) => {
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -26,9 +26,6 @@ const Header = ({ showTrailerAndPosterLinks, movieProperties, handleClearAllFilt
   const [selectionDialogOpen, setSelectionDialogOpen] = useState(false);
   const [selectedMovieState, setSelectedMovieState] = useState([]);
   const [errorOpen, setErrorOpen] = useState(false);
-
-  const isMobile = Platform.isMobile;
-
 
   const handleErrorOpen = () => {
     setErrorOpen(true);
@@ -187,43 +184,6 @@ production_company: "${productionCompanies}"
           sortOrder={sortOrder}
           onSortChange={handleSortChange}
           toggleSortOrder={toggleSortOrder} />
-      </Box>
-
-      <Box mb={2}>
-        <FormControl fullWidth variant="outlined" sx={{ width: isMobile ? '70%' : '8vw', '.MuiOutlinedInput-notchedOutline': { borderColor: 'inherit' } }}>
-          <InputLabel sx={{ color: 'inherit' }}>Languages</InputLabel>
-          <Select
-            multiple
-            value={selectedLanguages}
-            onChange={handleLanguageChange}
-            input={<OutlinedInput label="Languages" />}
-            renderValue={(selected) => selected.join(', ')}
-            MenuProps={{
-              PaperProps: {
-                style: {
-                  maxHeight: 224,
-                  width: 200,
-                },
-              },
-            }}
-            sx={{
-              color: 'inherit',
-              '& .MuiSelect-select': { paddingLeft: '5px' },
-              '& .MuiOutlinedInput-notchedOutline': { borderColor: 'inherit' },
-              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'inherit' },
-              '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'inherit' },
-              '& .MuiSvgIcon-root': { color: 'inherit' },
-            }}
-          >
-            {availableLanguages.map((language) => (
-              <MenuItem key={language} value={language}>
-                <Checkbox checked={selectedLanguages.indexOf(language) > -1} />
-                <ListItemText primary={language} />
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
       </Box>
 
       <Box mb={2}>
