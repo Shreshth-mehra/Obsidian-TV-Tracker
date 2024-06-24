@@ -53,12 +53,12 @@ const genreList = [
   { "id": 37, "name": "Western" }
 ];
 
-export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, validLanguages }) => {
+export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, defaultLanguages, defaultProperties }) => {
   // Change movie state to movies, which will be an array
   const [movies, setMovies] = useState([moviesData || []]);
   const [filteredMovies, setFilteredMovies] = useState([]);
   const [selectedRating, setSelectedRating] = useState(1);
-  const [selectedProperties, setSelectedProperties] = useState([]);
+  const [selectedProperties, setSelectedProperties] = useState(defaultProperties);
   const [movieProperties, setMovieProperties] = useState([]);
   const [selectedGenres, setSelectedGenres] = useState([]);
   const [selectedTypes, setSelectedTypes] = useState([]);
@@ -68,16 +68,13 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, v
   const [sortOption, setSortOption] = useState('Rating');
   const [sortOrder, setSortOrder] = useState('descending');
   const [showDiscoverPopup, setShowDiscoverPopup] = useState(false);
-  const [selectedLanguages, setSelectedLanguages] = useState(validLanguages);
+  const [selectedLanguages, setSelectedLanguages] = useState(defaultLanguages);
   const [debugInfo, setDebugInfo] = useState('Should not be this');
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const isMobile = Platform.isMobile;
   const availableLanguages = Array.from(new Set(movies.map(movie => movie.original_language)));
-  // const languagesFromSettings = plugin.settings.defaultLanguageFilters.split(',').map(lang => lang.trim());
-  // const validLanguages = languagesFromSettings.filter(lang => availableLanguages.includes(lang));
-
 
   const openDiscoverPopup = () => setShowDiscoverPopup(true);
 
@@ -144,13 +141,6 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, v
   const toggleSortOrder = () => {
     setSortOrder(sortOrder === 'ascending' ? 'descending' : 'ascending');
   };
-
-  // useEffect(() => {
-  //   // This effect runs only once on mount
-  //   console.log("Me");
-  //   const languagesFromSettings = plugin.settings.defaultLanguageFilters.split(',').map(lang => lang.trim());
-  //   const validLanguages = languagesFromSettings.filter(lang => availableLanguages.includes(lang));
-  //   setSelectedLanguages(validLanguages);
 
 
   // }, []);

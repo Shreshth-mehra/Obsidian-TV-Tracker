@@ -471,8 +471,8 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 					}));
 
 					new Setting(containerEl)
-					.setName('Default Properties to show (IN PROGRESS)')
-					.setDesc('Enter property names separated by comma here. Entered values are are shown on the cards by default when the plugin is started. For example "Genre, Avg Vote"')
+					.setName('Default Properties to show')
+					.setDesc('Case sensitive. Enter property names separated by comma here. Entered values are are shown on the cards by default when the plugin is started. For example "Genre, Avg Vote"')
 					.addText(text => text
 						.setValue(this.plugin.settings.defaultPropertiesToShow)
 						.onChange(async (value) => {

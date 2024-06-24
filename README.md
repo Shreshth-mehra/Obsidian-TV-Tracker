@@ -2,7 +2,7 @@
 
 Movie and TV show tracker plugin for Obsidian
 
-# New in v1.3.3 (from 1.2.0)
+# New in v1.3.4 (from 1.2.0)
 
 -   Added more properties ( You can update the existing files from the settings)
 
@@ -25,6 +25,8 @@ Movie and TV show tracker plugin for Obsidian
 
 -   Added Clear all filters button
 -   Added Language filters
+-   Set default language filters in settings
+-   Set default properties to show in settings
 -   Can search using Production companies now
 -   Improved Error handling and Notices
 

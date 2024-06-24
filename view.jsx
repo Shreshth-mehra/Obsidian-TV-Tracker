@@ -55,13 +55,16 @@ export class TVTracker extends ItemView {
 
             const availableLanguages = Array.from(new Set(moviesData.map(movie => movie.original_language)));
             const languagesFromSettings = this.plugin.settings.defaultLanguageFilters.split(',').map(lang => lang.trim());
-            const validLanguages = languagesFromSettings.filter(lang => availableLanguages.includes(lang));
+            const defaultLanguages = languagesFromSettings.filter(lang => availableLanguages.includes(lang));
 
-
+            const availableProperties = Array.from(new Set(moviesData.flatMap(movie => Object.keys(movie))));
+            const propertiesFromSettings = this.plugin.settings.defaultPropertiesToShow.split(',').map(prop => prop.trim());
+            const defaultProperties = propertiesFromSettings.filter(prop => availableProperties.includes(prop));
+            console.log("Props are ", defaultProperties);
             const root = createRoot(this.containerEl.children[1]);
             root.render(
                 <React.StrictMode>
-                    <ReactView moviesData={moviesData} createMarkdownFile={this.createMarkdownFile} themeMode={this.themeMode} plugin={this.plugin} validLanguages={validLanguages} />
+                    <ReactView moviesData={moviesData} createMarkdownFile={this.createMarkdownFile} themeMode={this.themeMode} plugin={this.plugin} defaultLanguages={defaultLanguages} defaultProperties={defaultProperties} />
                 </React.StrictMode>
             );
         } catch (error) {
