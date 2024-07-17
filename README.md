@@ -2,6 +2,22 @@
 
 Movie and TV show tracker plugin for Obsidian
 
+# New in v1.3.5
+
+-   Click to View Info
+    -   Clicking on a Actor or director in the metrics shows a popup with Photo of the person, total movies, upcoming movies, known for movies, age and ranks in your library
+    -   Can be turned off from settings
+-   Added a combined score rating mode
+    -Only works for Actors (for now)
+-   Added ability to Search by collection name
+-   Added metrics for viewing total Unique Actors and Directors
+
+# Upcoming in v1.3.6
+
+-   Number of episodes seen for TV series
+-   Search by Movie description
+-   Better recommender (This is a tough one, hopefully I can get to it)
+
 # New in v1.3.4 (from 1.2.0)
 
 -   Added more properties ( You can update the existing files from the settings)
@@ -90,10 +106,19 @@ There are 4 options to choose from for deciding the metric for Top in each categ
 2. Simple Rating - Based on sum of Rating for each category. For example, when evaluating Top Actors the points for Sandra Bullock will be calculated as the sum of the ratings for each of her movies and tv shows in your library.
 3. Balanced Rating - Similar to Simple rating but an Actor gets more points if they are in the first 4 Cast members for a title. For Top Genre, Directors, Production Companies act the same way as Simple Rating
 4. Avg Rating - Avg rating for the person/genre if they have a minimum number of titles (This number can be changed from settings)
+5. Combined Score - Applies only to Actors for now. Takes the rank of the actor across Count, Simple rating and Avg rating and combines it into a single rank.
 
 Genre taste index is the ration of User rating to public rating for each of the title in that genre. So, if your genre taste index for Documentries is 1.2 that means that you rate documentary movies 1.2 times higher on average than public ratings. Keep in mind that the public ratings are fetched from TMDB and are on a scale of 1 to 10. The user rating is multiplied by 2 for this calculation to be on the same scale. Additionally, the rating mode does not affect this metric.
 
 Setting Language filter also changes the metrics. For example, if you have English (en) and Spanish (es) movies in your vault and 'en' filter is applied then the metrics will only include movies with original_language as 'en'
+
+### Click for info
+
+If enabled in settings, on clicking an Actor or Director name in the metrics will show a pop up with Photo of the person, total movies, upcoming movies, known for movies, age and ranks in your library.
+
+Total Movies only includes movies in which the Actor is within the first 10 cast members
+Total Shows only includes shows in which the Actor appeared more than 5 times (This is to prevent talk show appearances from being included)
+Ranks in your library - To reduce processsing these are only computed and saved for the 2\* topActorsnumber in your library. If a person falls out of this range then their rank will be dispalyed as 1001. Additionally, if an actor is clicked who does not have enough movies to qualify for Avg rating (this number is set in the Settings) then the Avg rating rank will also be 1001.
 
 ## Settings
 

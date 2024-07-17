@@ -32,7 +32,7 @@ const ExpandableSection = ({ title, items, itemKey, itemLabel, itemValue, themeM
                 const actorData = actorResponse.json;
                 console.log('Actor Response:', actorData);
                 const movies = actorData.movie_credits.cast.filter(movie => movie.order < 10);
-                const tvShows = actorData.tv_credits.cast.filter(show => show.order < 10);
+                const tvShows = actorData.tv_credits.cast.filter(show => show.episode_count >= 5);
 
                 const actorInfo = {
                     totalMovies: movies.length,
