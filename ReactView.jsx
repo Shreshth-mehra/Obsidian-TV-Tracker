@@ -57,7 +57,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
   // Change movie state to movies, which will be an array
   const [movies, setMovies] = useState([moviesData || []]);
   const [filteredMovies, setFilteredMovies] = useState([]);
-  const [selectedRating, setSelectedRating] = useState(1);
+  const [selectedRating, setSelectedRating] = useState(0);
   const [selectedProperties, setSelectedProperties] = useState(defaultProperties);
   const [movieProperties, setMovieProperties] = useState([]);
   const [selectedGenres, setSelectedGenres] = useState([]);
@@ -193,6 +193,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
     const filtered = movies.filter(movie => {
       try {
         const matchesTitle = movie.Title && movie.Title.toString().toLowerCase().includes(lowerCaseSearchTerm);
+        const matchesCollection = movie.belongs_to_collection && movie.belongs_to_collection.toString().toLowerCase().includes(lowerCaseSearchTerm);
         const matchesDirector = movie.Director ? movie.Director.toLowerCase().includes(lowerCaseSearchTerm) : false;
 
         const matchesCast = movie.Cast && movie.Cast.split(', ').some(castMember =>
@@ -208,7 +209,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
         const matchesRating = movie.Rating >= selectedRating;
         const matchesWatchlist = !showWatchlist || movie.Status === 'Watchlist';
         const matchesLanguage = selectedLanguages.length === 0 || selectedLanguages.includes(movie.original_language);
-        return matchesGenre && matchesType && matchesRating && matchesLanguage && (matchesTitle || matchesCast || matchesDirector || matchesProductionComapny) && matchesWatchlist;
+        return matchesGenre && matchesType && matchesRating && matchesLanguage && (matchesTitle || matchesCast || matchesDirector || matchesProductionComapny || matchesCollection) && matchesWatchlist;
       } catch (error) {
         new Notice(`Error processing movie ${movie.Title}. Showing rest of the results. Please console for detailed error`);
         console.error(`Error processing movie ${movie.Title}: ${error.message}`);
@@ -349,7 +350,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
         </Box>
       )}
       {!plugin.settings.hideMetrics && (
-        <Metrics movies={languageFilteredMovies} budgetMetricsSubheadingColor={plugin.settings.budgetMetricsSubheadingColor} hideBudgetMetrics={plugin.settings.hideBudgetMetrics} hideGenreTasteIndexMetrics={plugin.settings.hideGenreTasteIndexMetrics} topActorsNumber={plugin.settings.topActorsNumber} topCollectionsNumber={plugin.settings.topCollectionsNumber} topPerformersNumber={plugin.settings.topPerformersNumber} topGenresNumber={plugin.settings.topGenresNumber} topDirectorsNumber={plugin.settings.topDirectorsNumber} topProductionCompaniesNumber={plugin.settings.topProductionCompaniesNumber} minMoviesForMetrics={plugin.settings.minMoviesForMetrics} minMoviesForMetricsCollections={plugin.settings.minMoviesForMetricsCollections} minMoviesForMetricsDirectors={plugin.settings.minMoviesForMetricsDirectors} movieMetricsHeadingColor={plugin.settings.movieMetricsHeadingColor} movieMetricsSubheadingColor={plugin.settings.movieMetricsSubheadingColor} themeMode={themeMode} metricsHeading={plugin.settings.metricsHeading} />
+        <Metrics movies={languageFilteredMovies} plugin={plugin} themeMode={themeMode} />
       )}
       <DiscoverPopup
         open={showDiscoverPopup}

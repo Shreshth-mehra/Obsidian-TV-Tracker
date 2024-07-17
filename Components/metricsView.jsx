@@ -5,25 +5,37 @@ import ExpandableSection from './expandableSection';
 
 const Metrics = ({
   movies,
-  topActorsNumber,
-  topGenresNumber,
-  topDirectorsNumber,
-  topProductionCompaniesNumber,
-  topCollectionsNumber,
-  topPerformersNumber,
-  minMoviesForMetrics,
-  minMoviesForMetricsCollections,
-  minMoviesForMetricsDirectors,
-  movieMetricsHeadingColor,
-  movieMetricsSubheadingColor,
   themeMode,
-  hideBudgetMetrics,
-  hideGenreTasteIndexMetrics,
-  budgetMetricsSubheadingColor,
-  metricsHeading
+  plugin
 }) => {
+
+  const {
+    topActorsNumber,
+    topGenresNumber,
+    topDirectorsNumber,
+    topProductionCompaniesNumber,
+    topCollectionsNumber,
+    topPerformersNumber,
+    minMoviesForMetrics,
+    minMoviesForMetricsCollections,
+    minMoviesForMetricsDirectors,
+    movieMetricsHeadingColor,
+    movieMetricsSubheadingColor,
+    hideBudgetMetrics,
+    hideGenreTasteIndexMetrics,
+    budgetMetricsSubheadingColor,
+    metricsHeading,
+    apiKey,
+    clickForInfo
+  } = plugin.settings;
+
+
   const [topGenres, setTopGenres] = useState([]);
   const [topActors, setTopActors] = useState([]);
+  const [totalActors, setTotalActors] = useState(0);
+  const [totalDirectors, setTotalDirectors] = useState(0);
+  const [totalProductionCompanies, setTotalProductionCompanies] = useState(0);
+  const [topActorIndices, setTopActorIndices] = useState([]);
   const [totalDuration, setTotalDuration] = useState(0);
   const [topDirectors, setTopDirectors] = useState([]);
   const [topProductionCompanies, setTopProductionCompanies] = useState([]);
@@ -52,8 +64,16 @@ const Metrics = ({
   const [genreTasteIndexAvg, setGenreTasteIndexAvg] = useState({});
   const [includeWatchlist, setIncludeWatchlist] = useState(false);
 
+  // useEffect(() => {
+  //   setRatingMode('Combined Score');
+  //   calculateMetrics();
+  //   setRatingMode('Count');
+  // }, [movies]);
+
   useEffect(() => {
+
     calculateMetrics();
+
   }, [movies, ratingMode, includeWatchlist]);
 
   const parseDuration = (durationStr) => {
@@ -72,21 +92,21 @@ const Metrics = ({
   };
 
   const calculateMetrics = () => {
-    let genreCounts = {};
+
     let genreTasteIndexSum = {};
-    let actorCounts = {};
+
     let genreRatingSum = {};
     let genreMovieCount = {};
     let actorRatingSum = {};
     let actorMovieCount = {};
     let durationSum = 0;
-    let directorCounts = {};
+
     let directorRatingSum = {};
     let directorMovieCount = {};
-    let productionCompanyCounts = {};
+
     let productionCompanyRatingSum = {};
     let productionCompanyMovieCount = {};
-    let collectionCounts = {};
+
     let collectionRatingSum = {};
     let collectionMovieCount = {};
     let underperformersList = [];
@@ -95,6 +115,17 @@ const Metrics = ({
     let lowestBudgetsList = [];
     let mostRevenueList = [];
     let leastRevenueList = [];
+
+    const avgGenreRatings = {};
+    const avgActorRatings = {};
+    const avgDirectorRatings = {};
+    const avgProductionCompanyRatings = {};
+    const avgCollectionRatings = {};
+
+    const weightCount = 1;
+    const weightRating = 1;
+    const weightAvgRating = 1;
+    const weightTasteIndex = 1;
 
     movies.forEach(movie => {
       if (includeWatchlist || movie.Status !== 'Watchlist') {
@@ -111,56 +142,37 @@ const Metrics = ({
         const tasteIndex = userRatingScaled > 0 ? userRatingScaled / publicRating : 0;
 
         genres.forEach(genre => {
-          if (ratingMode === 'Count') {
-            genreCounts[genre] = (genreCounts[genre] || 0) + 1;
-          } else {
-            genreRatingSum[genre] = (genreRatingSum[genre] || 0) + movieRating;
-          }
+
+          genreRatingSum[genre] = (genreRatingSum[genre] || 0) + movieRating;
+
           genreMovieCount[genre] = (genreMovieCount[genre] || 0) + 1;
           genreTasteIndexSum[genre] = (genreTasteIndexSum[genre] || 0) + tasteIndex;
+
         });
 
         actors.forEach((actor, index) => {
-          if (ratingMode === 'Count') {
-            actorCounts[actor] = (actorCounts[actor] || 0) + 1;
-          } else {
-            let ratingMultiplier = movieRating;
-            if (ratingMode === 'Balanced Rating' && index < 4) {
-              ratingMultiplier *= 2;
-            }
-            actorRatingSum[actor] = (actorRatingSum[actor] || 0) + ratingMultiplier;
+          let ratingMultiplier = movieRating;
+          if (ratingMode === 'Balanced Rating' && index < 4) {
+            ratingMultiplier *= 2;
           }
+          actorRatingSum[actor] = (actorRatingSum[actor] || 0) + ratingMultiplier;
           actorMovieCount[actor] = (actorMovieCount[actor] || 0) + 1;
         });
 
         if (director) {
-          if (ratingMode === 'Count') {
-            directorCounts[director] = (directorCounts[director] || 0) + 1;
-          } else {
-            let ratingMultiplier = parseFloat(movie.Rating) || 0;
-            if (ratingMode === 'Balanced Rating') {
-              ratingMultiplier *= 1; // or any other logic for Balanced Rating
-            }
-            directorRatingSum[director] = (directorRatingSum[director] || 0) + ratingMultiplier;
-          }
+
+          directorRatingSum[director] = (directorRatingSum[director] || 0) + movieRating;
           directorMovieCount[director] = (directorMovieCount[director] || 0) + 1;
         }
 
         productionCompanies.forEach((company) => {
-          if (ratingMode === 'Count') {
-            productionCompanyCounts[company] = (productionCompanyCounts[company] || 0) + 1;
-          } else {
-            productionCompanyRatingSum[company] = (productionCompanyRatingSum[company] || 0) + movieRating;
-          }
+
+          productionCompanyRatingSum[company] = (productionCompanyRatingSum[company] || 0) + movieRating;
           productionCompanyMovieCount[company] = (productionCompanyMovieCount[company] || 0) + 1;
         });
 
         if (collection) {
-          if (ratingMode === 'Count') {
-            collectionCounts[collection] = (collectionCounts[collection] || 0) + 1;
-          } else {
-            collectionRatingSum[collection] = (collectionRatingSum[collection] || 0) + movieRating;
-          }
+          collectionRatingSum[collection] = (collectionRatingSum[collection] || 0) + movieRating;
           collectionMovieCount[collection] = (collectionMovieCount[collection] || 0) + 1;
         }
 
@@ -187,12 +199,17 @@ const Metrics = ({
       }
     });
 
+    setTotalActors(Object.keys(actorMovieCount).length);
+    setTotalDirectors(Object.keys(directorMovieCount).length);
+    setTotalProductionCompanies(Object.keys(productionCompanyMovieCount).length);
+
+
     if (ratingMode === 'Count') {
-      setTopGenres(Object.entries(genreCounts).sort((a, b) => b[1] - a[1]).slice(0, topGenresNumber));
-      setTopActors(Object.entries(actorCounts).sort((a, b) => b[1] - a[1]).slice(0, topActorsNumber));
-      setTopDirectors(Object.entries(directorCounts).sort((a, b) => b[1] - a[1]).slice(0, topDirectorsNumber));
-      setTopProductionCompanies(Object.entries(productionCompanyCounts).sort((a, b) => b[1] - a[1]).slice(0, topProductionCompaniesNumber));
-      setTopCollections(Object.entries(collectionCounts).sort((a, b) => b[1] - a[1]).slice(0, topCollectionsNumber));
+      setTopGenres(Object.entries(genreMovieCount).sort((a, b) => b[1] - a[1]).slice(0, topGenresNumber));
+      setTopActors(Object.entries(actorMovieCount).sort((a, b) => b[1] - a[1]).slice(0, topActorsNumber));
+      setTopDirectors(Object.entries(directorMovieCount).sort((a, b) => b[1] - a[1]).slice(0, topDirectorsNumber));
+      setTopProductionCompanies(Object.entries(productionCompanyMovieCount).sort((a, b) => b[1] - a[1]).slice(0, topProductionCompaniesNumber));
+      setTopCollections(Object.entries(collectionMovieCount).sort((a, b) => b[1] - a[1]).slice(0, topCollectionsNumber));
     } else if (ratingMode === 'Simple Rating' || ratingMode === 'Balanced Rating') {
       setTopGenres(Object.entries(genreRatingSum).sort((a, b) => b[1] - a[1]).slice(0, topGenresNumber));
       setTopActors(Object.entries(actorRatingSum).sort((a, b) => b[1] - a[1]).slice(0, topActorsNumber));
@@ -200,13 +217,13 @@ const Metrics = ({
       setTopProductionCompanies(Object.entries(productionCompanyRatingSum).sort((a, b) => b[1] - a[1]).slice(0, topProductionCompaniesNumber));
       setTopCollections(Object.entries(collectionRatingSum).sort((a, b) => b[1] - a[1]).slice(0, topCollectionsNumber));
     } else if (ratingMode === 'Avg Rating') {
-      const avgGenreRatings = {};
+      // const avgGenreRatings = {};
       for (const genre in genreRatingSum) {
         avgGenreRatings[genre] = (genreRatingSum[genre] / genreMovieCount[genre]).toFixed(2);
       }
       setTopGenres(Object.entries(avgGenreRatings).sort((a, b) => b[1] - a[1]).slice(0, topGenresNumber));
 
-      const avgDirectorRatings = {};
+      // const avgDirectorRatings = {};
       for (const director in directorRatingSum) {
         if (directorMovieCount[director] >= minMoviesForMetricsDirectors) {
           avgDirectorRatings[director] = (directorRatingSum[director] / directorMovieCount[director]).toFixed(2);
@@ -214,7 +231,7 @@ const Metrics = ({
       }
       setTopDirectors(Object.entries(avgDirectorRatings).sort((a, b) => b[1] - a[1]).slice(0, topDirectorsNumber));
 
-      const avgActorRatings = {};
+      // const avgActorRatings = {};
       for (const actor in actorRatingSum) {
         if (actorMovieCount[actor] >= minMoviesForMetrics) {
           avgActorRatings[actor] = (actorRatingSum[actor] / actorMovieCount[actor]).toFixed(2);
@@ -222,7 +239,7 @@ const Metrics = ({
       }
       setTopActors(Object.entries(avgActorRatings).sort((a, b) => b[1] - a[1]).slice(0, topActorsNumber));
 
-      const avgProductionCompanyRatings = {};
+      //const avgProductionCompanyRatings = {};
       for (const company in productionCompanyRatingSum) {
         if (productionCompanyMovieCount[company] >= minMoviesForMetricsDirectors) {
           avgProductionCompanyRatings[company] = (productionCompanyRatingSum[company] / productionCompanyMovieCount[company]).toFixed(2);
@@ -230,7 +247,7 @@ const Metrics = ({
       }
       setTopProductionCompanies(Object.entries(avgProductionCompanyRatings).sort((a, b) => b[1] - a[1]).slice(0, topProductionCompaniesNumber));
 
-      const avgCollectionRatings = {};
+      //const avgCollectionRatings = {};
       for (const collection in collectionRatingSum) {
         if (collectionMovieCount[collection] >= minMoviesForMetricsCollections) {
           avgCollectionRatings[collection] = (collectionRatingSum[collection] / collectionMovieCount[collection]).toFixed(2);
@@ -238,6 +255,84 @@ const Metrics = ({
       }
       setTopCollections(Object.entries(avgCollectionRatings).sort((a, b) => b[1] - a[1]).slice(0, topCollectionsNumber));
     }
+
+    for (const genre in genreRatingSum) {
+      avgGenreRatings[genre] = (genreRatingSum[genre] / genreMovieCount[genre]).toFixed(2);
+    }
+    for (const director in directorRatingSum) {
+      if (directorMovieCount[director] >= minMoviesForMetricsDirectors) {
+        avgDirectorRatings[director] = (directorRatingSum[director] / directorMovieCount[director]).toFixed(2);
+      }
+    }
+    for (const actor in actorRatingSum) {
+      if (actorMovieCount[actor] >= minMoviesForMetrics) {
+        avgActorRatings[actor] = (actorRatingSum[actor] / actorMovieCount[actor]).toFixed(2);
+      }
+    }
+    for (const company in productionCompanyRatingSum) {
+      if (productionCompanyMovieCount[company] >= minMoviesForMetricsDirectors) {
+        avgProductionCompanyRatings[company] = (productionCompanyRatingSum[company] / productionCompanyMovieCount[company]).toFixed(2);
+      }
+    }
+    for (const collection in collectionRatingSum) {
+      if (collectionMovieCount[collection] >= minMoviesForMetricsCollections) {
+        avgCollectionRatings[collection] = (collectionRatingSum[collection] / collectionMovieCount[collection]).toFixed(2);
+      }
+    }
+
+    const actorMovieCountSorted = Object.entries(actorMovieCount).sort((a, b) => b[1] - a[1]);
+    const actorRatingSumSorted = Object.entries(actorRatingSum).sort((a, b) => b[1] - a[1]);
+    const avgActorRatingSorted = Object.entries(avgActorRatings).sort((a, b) => b[1] - a[1]);
+
+    function getAverageIndex(actorName) {
+      const movieCountIndex = actorMovieCountSorted.findIndex(actor => actor[0] === actorName);
+      const ratingSumIndex = actorRatingSumSorted.findIndex(actor => actor[0] === actorName);
+      const avgRatingIndex = avgActorRatingSorted.findIndex(actor => actor[0] === actorName);
+
+      const movieCountIndexSafe = movieCountIndex !== -1 ? movieCountIndex : 1000;
+      const ratingSumIndexSafe = ratingSumIndex !== -1 ? ratingSumIndex : 1000;
+      const avgRatingIndexSafe = avgRatingIndex !== -1 ? avgRatingIndex : 1000;
+
+      return {
+        averageIndex: (movieCountIndexSafe + ratingSumIndexSafe + avgRatingIndexSafe) / 3,
+        countIndex: movieCountIndexSafe,
+        sumIndex: ratingSumIndexSafe,
+        avgRatIndex: avgRatingIndexSafe
+      };
+    }
+
+
+    const topActorsx2 = actorMovieCountSorted.slice(0, topActorsNumber * 2).map(actor => actor[0]);
+    console.log(topActorsx2);
+    const actorAverageIndexes = topActorsx2.map(actorName => {
+      return {
+        actor: actorName,
+        averageIndex: getAverageIndex(actorName).averageIndex.toFixed(2)
+      };
+    });
+
+    const detailedActorRanks = topActorsx2.map(actorName => {
+      const { averageIndex, countIndex, sumIndex, avgRatIndex } = getAverageIndex(actorName);
+
+      return {
+        actor: actorName,
+        averageIndex: averageIndex.toFixed(2),
+        countIndex: countIndex,
+        sumIndex: sumIndex,
+        avgRatIndex: avgRatIndex
+      };
+    });
+
+    // Sort the actors by their average index, lowest first
+    actorAverageIndexes.sort((a, b) => a.averageIndex - b.averageIndex);
+    detailedActorRanks.sort((a, b) => a.averageIndex - b.averageIndex);
+    setTopActorIndices(detailedActorRanks);
+    // Convert to the expected format of [actor, count] arrays
+    const topActorsFormatted = actorAverageIndexes.slice(0, topActorsNumber).map(actor => [actor.actor, actor.averageIndex]);
+    if (ratingMode === 'Combined Score') {
+      setTopActors(topActorsFormatted);
+    }
+
     setTotalDuration(formatDuration(durationSum));
 
     setUnderperformers(underperformersList.sort((a, b) => a.ratio - b.ratio).slice(0, topPerformersNumber));
@@ -255,6 +350,8 @@ const Metrics = ({
       .sort((a, b) => b[1] - a[1])
       .reduce((acc, [genre, avg]) => ({ ...acc, [genre]: avg }), {}));
   };
+
+
 
   function formatMoney(revenue) {
     if (revenue >= 1e9) {
@@ -363,6 +460,7 @@ const Metrics = ({
               <MenuItem value="Simple Rating">Simple Rating</MenuItem>
               <MenuItem value="Balanced Rating">Balanced Rating</MenuItem>
               <MenuItem value="Avg Rating">Avg Rating</MenuItem>
+              <MenuItem value="Combined Score">Combined Score</MenuItem>
             </Select>
           </FormControl>
           <FormControlLabel
@@ -389,10 +487,12 @@ const Metrics = ({
           themeMode={themeMode}
           expanded={expandedGenres}
           onExpand={handleExpandClickGenres}
+
         />
         <ExpandableSection
           title={`Top ${topActorsNumber} Actors:`}
           items={topActors.map(([actor, count]) => ({ actor, count }))}
+          topActorIndices={topActorIndices}
           itemKey="actor"
           itemLabel="actor"
           itemValue="count"
@@ -400,6 +500,8 @@ const Metrics = ({
           themeMode={themeMode}
           expanded={expandedActors}
           onExpand={handleExpandClickActors}
+          apiKey={apiKey}
+          clickToView={clickForInfo}
         />
         <ExpandableSection
           title={`Top ${topDirectorsNumber} Directors:`}
@@ -411,6 +513,9 @@ const Metrics = ({
           themeMode={themeMode}
           expanded={expandedDirectors}
           onExpand={handleExpandClickDirectors}
+          apiKey={apiKey}
+          clickToView={clickForInfo}
+
         />
         <ExpandableSection
           title={`Top ${topProductionCompaniesNumber} Production Companies:`}
@@ -422,6 +527,7 @@ const Metrics = ({
           themeMode={themeMode}
           expanded={expandedProductionCompanies}
           onExpand={handleExpandClickProductionCompanies}
+
         />
         <ExpandableSection
           title={`Top ${topCollectionsNumber} Collections:`}
@@ -433,6 +539,7 @@ const Metrics = ({
           themeMode={themeMode}
           expanded={expandedCollections}
           onExpand={handleExpandClickCollections}
+
         />
 
         {!hideGenreTasteIndexMetrics && (
@@ -446,6 +553,7 @@ const Metrics = ({
             themeMode={themeMode}
             expanded={expandedTasteIndex}
             onExpand={handleExpandClickTasteIndex}
+
           />
         )}
 
@@ -472,6 +580,7 @@ const Metrics = ({
                   headingColor={budgetMetricsSubheadingColor}
                   expanded={expandedUnderperformers}
                   onExpand={handleExpandClickUnderperformers}
+
                 />
                 <ExpandableSection
                   title={`Top ${topPerformersNumber} Overperformers:`}
@@ -483,6 +592,7 @@ const Metrics = ({
                   headingColor={budgetMetricsSubheadingColor}
                   expanded={expandedOverperformers}
                   onExpand={handleExpandClickOverperformers}
+
                 />
                 <ExpandableSection
                   title={`Top ${topPerformersNumber} Highest Budgets:`}
@@ -494,6 +604,7 @@ const Metrics = ({
                   headingColor={budgetMetricsSubheadingColor}
                   expanded={expandedHighestBudgets}
                   onExpand={handleExpandClickHighestBudgets}
+
                 />
                 <ExpandableSection
                   title={`Top ${topPerformersNumber} Lowest Budgets:`}
@@ -505,6 +616,7 @@ const Metrics = ({
                   headingColor={budgetMetricsSubheadingColor}
                   expanded={expandedLowestBudgets}
                   onExpand={handleExpandClickLowestBudgets}
+
                 />
                 <ExpandableSection
                   title={`Top ${topPerformersNumber} Most Revenue:`}
@@ -516,6 +628,7 @@ const Metrics = ({
                   headingColor={budgetMetricsSubheadingColor}
                   expanded={expandedMostRevenue}
                   onExpand={handleExpandClickMostRevenue}
+
                 />
                 <ExpandableSection
                   title={`Top ${topPerformersNumber} Least Revenue:`}
@@ -527,12 +640,16 @@ const Metrics = ({
                   headingColor={budgetMetricsSubheadingColor}
                   expanded={expandedLeastRevenue}
                   onExpand={handleExpandClickLeastRevenue}
+
                 />
               </Box>
             </Collapse>
           </Box>
         )}
         <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor }}>Total Movie Watching Time: {totalDuration}</Typography>
+        <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor }}>Unique Actors: {totalActors}</Typography>
+        <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor }}>Unique Directors: {totalDirectors}</Typography>
+        {/* <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor }}>Unique Production Companies: {totalProductionCompanies}</Typography> */}
       </Collapse>
     </Box>
   );

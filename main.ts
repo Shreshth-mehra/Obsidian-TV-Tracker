@@ -31,6 +31,7 @@ interface TVTrackerSettings {
 	metricsHeading: string;
 	defaultLanguageFilters: string;
 	defaultPropertiesToShow: string;
+	clickForInfo: boolean;
 	
 }
 
@@ -62,7 +63,8 @@ const DEFAULT_TV_SETTINGS: TVTrackerSettings = {
 	metricsHeading: 'For Number geeks',
 	showTrailerAndPosterLinks: true,
 	defaultLanguageFilters: '',
-	defaultPropertiesToShow: ''
+	defaultPropertiesToShow: '',
+	clickForInfo: true
 }
 
 export default class TVTrackerPlugin extends Plugin {
@@ -435,6 +437,16 @@ class TVTrackerSettingsTab extends PluginSettingTab {
                 .setValue(this.plugin.settings.showTrailerAndPosterLinks)
                 .onChange(async (value) => {
                     this.plugin.settings.showTrailerAndPosterLinks = value;
+                    await this.plugin.saveSettings();
+                }));
+
+				new Setting(containerEl)
+            .setName('Click to view info')
+            .setDesc('Click on an Actor or Director name in the metrics to view their Photo, total movies, Age, Upcoming movies and ranks in your library')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.clickForInfo)
+                .onChange(async (value) => {
+                    this.plugin.settings.clickForInfo = value;
                     await this.plugin.saveSettings();
                 }));
 

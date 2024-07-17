@@ -22,7 +22,7 @@ const MovieRatingFilter = ({ selectedRating, handleRatingChange }) => {
           '& .MuiSvgIcon-root': { color: 'inherit' },
         }}
       >
-        {[1, 2, 3, 3.5, 4, 4.5, 5].map(rating => (
+        {[0, 1, 2, 3, 3.5, 4, 4.5, 5].map(rating => (
           <MenuItem key={rating} value={rating}>{rating}</MenuItem>
         ))}
       </Select>
