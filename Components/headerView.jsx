@@ -57,7 +57,7 @@ const Header = ({ showTrailerAndPosterLinks, movieProperties, handleClearAllFilt
         setSearchResults(searchData.results.slice(0, plugin.settings.numberOfResults));
         setSelectionDialogOpen(true); // Open the selection dialog
       } else {
-        console.log(`No results found for ${movieData.type}:`, movieData.name);
+        new Notice(`No results found for ${movieData.type}:`, movieData.name);
       }
     } catch (error) {
       console.error(`Error fetching ${movieData.type} details:`, error);
@@ -113,11 +113,21 @@ const Header = ({ showTrailerAndPosterLinks, movieProperties, handleClearAllFilt
       let budget = null;
       let revenue = null;
       let belongsToCollection = null;
+      let totalEpisodes = 0;
+      let totalSeasons = 0;
+      let episode_runtime = 0;
+      let episodes_seen = 0;
 
       if (!isTvShow) {
         budget = detailsData.budget;
         revenue = detailsData.revenue;
         belongsToCollection = detailsData.belongs_to_collection ? detailsData.belongs_to_collection.name : null;
+      }
+
+      if (isTvShow) {
+        totalEpisodes = detailsData.number_of_episodes;
+        totalSeasons = detailsData.number_of_seasons;
+        episode_runtime = detailsData.episode_run_time && detailsData.episode_run_time.length > 0 ? detailsData.episode_run_time[0] : null;
       }
 
       const escapeDoubleQuotes = (str) => str.replace(/"/g, '\\"');
@@ -142,6 +152,10 @@ budget: ${budget}
 revenue: ${revenue}
 belongs_to_collection: ${belongsToCollection ? `"${belongsToCollection}"` : '""'}
 production_company: "${productionCompanies}"
+${isTvShow ? `total_episodes: ${totalEpisodes}` : ''}
+${isTvShow ? `total_seasons: ${totalSeasons}` : ''}
+${isTvShow ? `episode_runtime: ${episode_runtime}` : ''}
+${isTvShow ? `episodes_seen: ${episodes_seen}` : ''}
 ---`;
 
       let content = movieYAML;

@@ -37,6 +37,7 @@ const Metrics = ({
   const [totalProductionCompanies, setTotalProductionCompanies] = useState(0);
   const [topActorIndices, setTopActorIndices] = useState([]);
   const [totalDuration, setTotalDuration] = useState(0);
+  const [totalTVDuration, setTotalTVDuration] = useState(0);
   const [topDirectors, setTopDirectors] = useState([]);
   const [topProductionCompanies, setTopProductionCompanies] = useState([]);
   const [topCollections, setTopCollections] = useState([]);
@@ -100,6 +101,7 @@ const Metrics = ({
     let actorRatingSum = {};
     let actorMovieCount = {};
     let durationSum = 0;
+    let tvDurationSum = 0;
 
     let directorRatingSum = {};
     let directorMovieCount = {};
@@ -178,6 +180,10 @@ const Metrics = ({
 
         if (movie.Duration) {
           durationSum += parseDuration(movie.Duration);
+        }
+
+        if (movie.episode_runtime && movie.episodes_seen) {
+          tvDurationSum += (movie.episode_runtime * movie.episodes_seen);
         }
 
         if (movie.budget && movie.revenue) {
@@ -303,7 +309,7 @@ const Metrics = ({
 
 
     const topActorsx2 = actorMovieCountSorted.slice(0, topActorsNumber * 2).map(actor => actor[0]);
-    console.log(topActorsx2);
+
     const actorAverageIndexes = topActorsx2.map(actorName => {
       return {
         actor: actorName,
@@ -334,6 +340,7 @@ const Metrics = ({
     }
 
     setTotalDuration(formatDuration(durationSum));
+    setTotalTVDuration(formatDuration(tvDurationSum));
 
     setUnderperformers(underperformersList.sort((a, b) => a.ratio - b.ratio).slice(0, topPerformersNumber));
     setOverperformers(overperformersList.sort((a, b) => b.ratio - a.ratio).slice(0, topPerformersNumber));
@@ -647,6 +654,7 @@ const Metrics = ({
           </Box>
         )}
         <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor }}>Total Movie Watching Time: {totalDuration}</Typography>
+        <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor }}>Total Series Watching Time: {totalTVDuration}</Typography>
         <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor }}>Unique Actors: {totalActors}</Typography>
         <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor }}>Unique Directors: {totalDirectors}</Typography>
         {/* <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor }}>Unique Production Companies: {totalProductionCompanies}</Typography> */}

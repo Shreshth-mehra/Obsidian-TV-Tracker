@@ -32,6 +32,7 @@ interface TVTrackerSettings {
 	defaultLanguageFilters: string;
 	defaultPropertiesToShow: string;
 	clickForInfo: boolean;
+	showEPSeen: boolean;
 	
 }
 
@@ -64,7 +65,8 @@ const DEFAULT_TV_SETTINGS: TVTrackerSettings = {
 	showTrailerAndPosterLinks: true,
 	defaultLanguageFilters: '',
 	defaultPropertiesToShow: '',
-	clickForInfo: true
+	clickForInfo: true,
+	showEPSeen: true
 }
 
 export default class TVTrackerPlugin extends Plugin {
@@ -128,7 +130,7 @@ export default class TVTrackerPlugin extends Plugin {
 		if (!movieFolder || !(movieFolder as any).children) return;
 	
 		const files = (movieFolder as any).children.filter((file: any) => file.extension === 'md');
-		// console.log(`Number of Markdown files found: ${files.length}`);
+		
 	
 		let iteration = 0;
 		let successCount = 0;
@@ -137,13 +139,12 @@ export default class TVTrackerPlugin extends Plugin {
 
 		for (const file of files) {
 			iteration += 1;
-			console.log(`\nProcessing file ${file.path}`);
-			console.log(`Number is ${iteration}`);
+		
 	
 			const cache = this.app.metadataCache.getFileCache(file);
 			const yaml = cache?.frontmatter;
 	
-			// console.log("YAML match is ", yaml);
+	
 			if (!yaml) {
 				errorCount++;
 				new Notice(`Error with reading YAML: ${file.path}`);
@@ -152,14 +153,13 @@ export default class TVTrackerPlugin extends Plugin {
 	
 			const poster = yaml.Poster;
 			const trailer = yaml.trailer;
-			// console.log("Poster is ", poster);
-			// console.log("Trailer is ", trailer);
+			
 	
 			let fileContent = await this.app.vault.read(file);
 	
 			if (poster) {
 				const posterLink = `![Poster](${poster})`;
-				console.log("PosterLink is ", posterLink);
+				
 				fileContent = fileContent.replace(`${posterLink}`, '\n');
 			}
 			if (trailer) {
@@ -167,7 +167,6 @@ export default class TVTrackerPlugin extends Plugin {
 				fileContent = fileContent.replace(`${trailerLink}`, '\n');
 			}
 	
-			console.log("Updated content is ", fileContent);
 	
 			try {
 				await this.app.vault.modify(file, fileContent);
@@ -190,8 +189,7 @@ export default class TVTrackerPlugin extends Plugin {
         if (!movieFolder || !(movieFolder as any).children) return;
 
         const files = (movieFolder as any).children.filter((file: any) => file.extension === 'md');
-        // console.log(`Number of Markdown files found: ${files.length}`);
-		
+     
         let iteration = 0;
         let successCount = 0;
         let errorCount = 0;
@@ -199,27 +197,22 @@ export default class TVTrackerPlugin extends Plugin {
 
         for (const file of files) {
             iteration = iteration + 1;
-            // console.log("");
-            // console.log("");
-            // console.log("Doing file ", file.path);
-            // console.log("Number is ", iteration);
-
+          
            
             const cache = this.app.metadataCache.getFileCache(file);
             const yaml = cache?.frontmatter;
 
-            //console.log("YAML match is ", yaml);
+          
             if (!yaml) {
                 errorCount++;
 				new Notice(`Error with reading YAML: ${file.path}`);
-				console.log(`Error with reading YAML: ${file.path}`);
+				console.error(`Error with reading YAML: ${file.path}`);
                 continue;
             }
 
             const poster = yaml.Poster;
             const trailer = yaml.trailer;
-			// console.log("Poster is ", poster);
-			// console.log('trailer is ', trailer);
+			
 			let newContent = await this.app.vault.read(file);
 			if (poster) {
 				const posterLink = `![Poster](${poster})`;
@@ -232,7 +225,7 @@ export default class TVTrackerPlugin extends Plugin {
 				new Notice(`No trailer found for file: ${file.path}`);
 				console.log(`No trailer found for file: ${file.path}`);
 			}
-			// console.log("New content is ", newContent);
+		
 			if (poster || trailer) {
 				await this.app.vault.modify(file, newContent);
 				successCount++;
@@ -240,7 +233,7 @@ export default class TVTrackerPlugin extends Plugin {
 			} 
 			else {
 				new Notice(`Error with reading Poster or Trailer: ${file.path}`);
-				console.log(`Error with reading Poster or Trailer: ${file.path}`);
+				console.error(`Error with reading Poster or Trailer: ${file.path}`);
                 errorCount++;
             }
 
@@ -258,25 +251,20 @@ export default class TVTrackerPlugin extends Plugin {
         if (!movieFolder || !(movieFolder as any).children) return;
 
         const files = (movieFolder as any).children.filter((file: any) => file.extension === 'md');
-		//console.log(`Number of Markdown files found: ${files.length}`);
+		
 		let iteration = 0;
 		let successCount = 0;
     let errorCount = 0;
 	const updateFilesNotice = new Notice(`Processed files: ${successCount}/${files.length}\n Errors: ${errorCount}`, 0);
         for (const file of files) {
 			iteration = iteration +1;
-			// console.log("");
-			// console.log("");
-			// if(iteration>=100){
-			// 	break;
-			// }
+		
             const filePath = file.path;
-			// console.log("Doing file ", file.path);
-			// console.log("Number is ", iteration)
+			
             const cache = this.app.metadataCache.getFileCache(file);
             const yaml = cache?.frontmatter;
 
-			//console.log("YAML match is ", yaml);
+			
             if (!yaml) {
 				errorCount++;
 				continue;
@@ -284,8 +272,7 @@ export default class TVTrackerPlugin extends Plugin {
 
             const type = yaml.Type;
             const tmdbId = yaml["TMDB ID"];
-			// console.log("Type match is ", type);
-			// console.log("TMDB Id match is ", tmdbId);
+			
 			if (!type || !tmdbId) {
 				errorCount++;
 				continue;
@@ -298,7 +285,7 @@ export default class TVTrackerPlugin extends Plugin {
 				url: `https://api.themoviedb.org/3/${endpoint}/${tmdbId}?api_key=${this.settings.apiKey}&append_to_response=videos`,
 			});
 
-            //console.log(`Status for ${filePath}: ${response.status}`);
+           
 
             if (response.status !== 200) {
 				errorCount++;
@@ -354,19 +341,18 @@ export default class TVTrackerPlugin extends Plugin {
             production_company: `"${productionCompanies}"`,
         };
 
-		//console.log("updatedYaml is ", updatedYaml);
+	
         const updatedYamlContent = `---\n${Object.entries(updatedYaml).map(([key, value]) => `${key}: ${typeof value === 'string' ? value : JSON.stringify(value)}`).join('\n')}\n---`;
-       // console.log("updatedYamlContent is ", updatedYamlContent);
+     
 			
             const fileContent = await this.app.vault.read(file);
-			// console.log("fiel content is ", fileContent);
-			// console.log("file content (raw) is ", JSON.stringify(fileContent));
+
 
 			const yamlRegex = /^---[\r\n]+[\s\S]*?[\r\n]+---/m;
 
 			if (yamlRegex.test(fileContent)) {
 				const updatedFileContent = fileContent.replace(yamlRegex, updatedYamlContent);
-				// console.log("Updated file content is ", updatedFileContent);
+				
 				// Save the updated content back to the file
 				await this.app.vault.modify(file, updatedFileContent);
 				successCount++;
@@ -383,6 +369,104 @@ export default class TVTrackerPlugin extends Plugin {
 		setTimeout(() => updateFilesNotice.hide(), 3000);
 	}
 
+	async updateEPTracking() {
+		// Get all series files
+		const seriesFolder = this.app.vault.getAbstractFileByPath(this.settings.movieFolderPath);
+		if (!seriesFolder || !(seriesFolder as any).children) return;
+	
+		const files = (seriesFolder as any).children.filter((file: any) => file.extension === 'md');
+		let iteration = 0;
+		let successCount = 0;
+		let errorCount = 0;
+		const updateFilesNotice = new Notice(`Processed files: ${successCount}/${files.length}\n Errors: ${errorCount}`, 0);
+		const escapeDoubleQuotes = (str: string) => str.replace(/"/g, '\\"');
+		for (const file of files) {
+			iteration++;
+			const filePath = file.path;
+			const cache = this.app.metadataCache.getFileCache(file);
+			const yaml = cache?.frontmatter;
+	
+			if (!yaml) {
+				errorCount++;
+				console.error("YAML front matter not found in file:", file.path)
+				continue;
+			}
+	
+			const type = yaml.Type;
+			const tmdbId = yaml["TMDB ID"];
+	
+			if (type !== 'Series' || !tmdbId) {
+				continue;
+			}
+	
+			const response = await requestUrl({
+				url: `https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${this.settings.apiKey}&append_to_response=last_episode_to_air`,
+			});
+	
+			if (response.status !== 200) {
+				errorCount++;
+				console.error("BAd response from TMDB", file.path)
+				continue;
+			}
+	
+			const data = response.json;
+			const totalEpisodes = data.number_of_episodes;
+			const totalSeasons = data.number_of_seasons;
+			let episode_runtime = data.episode_run_time && data.episode_run_time.length > 0 ? data.episode_run_time[0] : null;
+	
+			if (!episode_runtime && data.last_episode_to_air) {
+				episode_runtime = data.last_episode_to_air.runtime;
+			}
+		
+	
+			let updatedYaml ={}
+	
+			// Only add episodes_seen if it doesn't already exist
+			if (!('episodes_seen' in yaml)) {
+				updatedYaml = {
+					...yaml,
+					total_episodes: totalEpisodes,
+					total_seasons: totalSeasons,
+					episode_runtime: episode_runtime,
+					episodes_seen: 0
+				};
+			}
+			else {
+				 updatedYaml = {
+					...yaml,
+					total_episodes: totalEpisodes,
+					total_seasons: totalSeasons,
+					episode_runtime: episode_runtime
+				};
+			}
+	
+			const updatedYamlContent = `---\n${Object.entries(updatedYaml).map(([key, value]) => {
+				const escapedValue = typeof value === 'string' ? `"${escapeDoubleQuotes(value)}"` : value;
+				return `${key}: ${escapedValue}`;
+			}).join('\n')}\n---`;
+	
+			const fileContent = await this.app.vault.read(file);
+	
+			const yamlRegex = /^---[\r\n]+[\s\S]*?[\r\n]+---/m;
+	
+			if (yamlRegex.test(fileContent)) {
+				const updatedFileContent = fileContent.replace(yamlRegex, updatedYamlContent);
+				await this.app.vault.modify(file, updatedFileContent);
+				successCount++;
+			} else {
+				console.error("YAML front matter not found in file:", file.path);
+				errorCount++;
+			}
+	
+			updateFilesNotice.setMessage(`Processed files: ${successCount}/${files.length}\n Errors: ${errorCount}`);
+		}
+	
+		updateFilesNotice.setMessage(`Processing Complete. New properties added for ${successCount} files. ${errorCount} files encountered errors.`);
+		setTimeout(() => updateFilesNotice.hide(), 3000);
+	}
+	
+
+	
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_TV_SETTINGS, await this.loadData());
 	}
@@ -441,17 +525,15 @@ class TVTrackerSettingsTab extends PluginSettingTab {
                 }));
 
 				new Setting(containerEl)
-            .setName('Click to view info')
-            .setDesc('Click on an Actor or Director name in the metrics to view their Photo, total movies, Age, Upcoming movies and ranks in your library')
-            .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.clickForInfo)
-                .onChange(async (value) => {
-                    this.plugin.settings.clickForInfo = value;
-                    await this.plugin.saveSettings();
-                }));
-
-   
-
+				.setName('Show Episodes seen for TV Series on Cards')
+				.setDesc('If enabled, the cards will show Number of episodes seen out of total episodes on the card for TV series only. Needs you to Update files first from v1.3.5 update button below')
+				.addToggle(toggle => toggle
+					.setValue(this.plugin.settings.showEPSeen)
+					.onChange(async (value) => {
+						this.plugin.settings.showEPSeen = value;
+						await this.plugin.saveSettings();
+					}));
+	
 			new Setting(containerEl)
 			.setName('Number of results to show')
 			.setDesc('Number of results to display for add new')
@@ -529,6 +611,18 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 	}
 
 	addFileUpdateSettings(containerEl: HTMLElement){
+
+		new Setting(containerEl)
+		.setName('Update Files for Episode tracking')
+		.setDesc('Fetches total episode count, adds a property for episodes seen and episode runtime. These new properties were added in v1.3.5. You can run this again to update the number of seasons and episodes with latest information.')
+		.addButton(button => button
+			.setButtonText('Update')
+			.setCta()
+			.onClick(() => {
+				this.plugin.updateEPTracking();
+			}));
+
+
 		new Setting(containerEl)
 		.setName('Update Files with new data')
 		.setDesc('Fetches overview, trailer link, original language, production company, budget, revenue for all movies/shows and updates the YAML. These new properties were added in v1.3.0')
@@ -678,6 +772,15 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 						this.plugin.settings.hideGenreTasteIndexMetrics = value;
 						await this.plugin.saveSettings();
 					}));
+					new Setting(containerEl)
+					.setName('Click to view info')
+					.setDesc('Click on an Actor or Director name in the metrics to view their Photo, total movies, Age, Upcoming movies and ranks in your library')
+					.addToggle(toggle => toggle
+						.setValue(this.plugin.settings.clickForInfo)
+						.onChange(async (value) => {
+							this.plugin.settings.clickForInfo = value;
+							await this.plugin.saveSettings();
+						}));
 
 		new Setting(containerEl)
 		.setName('Name of Metrics')

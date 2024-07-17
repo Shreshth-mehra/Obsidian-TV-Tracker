@@ -60,7 +60,7 @@ export class TVTracker extends ItemView {
             const availableProperties = Array.from(new Set(moviesData.flatMap(movie => Object.keys(movie))));
             const propertiesFromSettings = this.plugin.settings.defaultPropertiesToShow.split(',').map(prop => prop.trim());
             const defaultProperties = propertiesFromSettings.filter(prop => availableProperties.includes(prop));
-            console.log("Props are ", defaultProperties);
+
             const root = createRoot(this.containerEl.children[1]);
             root.render(
                 <React.StrictMode>

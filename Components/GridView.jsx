@@ -21,7 +21,7 @@ const MovieGrid = ({ movies, selectedProperties, numberOfColumns, toggleFittedIm
   };
 
   function openFile(filePath) {
-    // console.log("Path is " + filePath);
+
     plugin.app.workspace.openLinkText(filePath, '/', true);
   }
 
@@ -46,9 +46,16 @@ const MovieGrid = ({ movies, selectedProperties, numberOfColumns, toggleFittedIm
                   Rating: {generateStars(movie.Rating)}
                 </Typography>
               )}
-              <Typography variant="body2" color="text.secondary" style={{ color: 'inherit' }}>
-                Status: {movie.Status}
-              </Typography>
+              {movie.Type !== 'Movie' && plugin.settings.showEPSeen && movie.total_episodes && (movie.episodes_seen !== undefined && movie.episodes_seen !== null) && (
+                <Typography variant="body2" color="text.secondary" style={{ color: 'inherit' }}>
+                  Episodes: {movie.episodes_seen}/{movie.total_episodes}
+                </Typography>
+              )}
+              {movie.Status === 'Watchlist' && (
+                <Typography variant="body2" color="text.secondary" style={{ color: 'inherit' }}>
+                  Status: {movie.Status}
+                </Typography>
+              )}
               {selectedProperties.map((prop) => (
                 <Typography key={prop} variant="body2" color="inherit">
                   {`${prop}: ${movie[prop]}`}

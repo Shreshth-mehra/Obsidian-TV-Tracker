@@ -17,8 +17,7 @@ const ExpandableSection = ({ title, items, itemKey, itemLabel, itemValue, themeM
                 url: `https://api.themoviedb.org/3/search/person?api_key=${apiKey}&query=${actorName}`
             });
             const searchData = searchResponse.json;
-            console.log("Search name is ", actorName);
-            console.log('Search Response:', searchData);
+
 
             if (searchData.results.length > 0) {
                 const actor = searchData.results[0];
@@ -30,7 +29,7 @@ const ExpandableSection = ({ title, items, itemKey, itemLabel, itemValue, themeM
                     url: `https://api.themoviedb.org/3/person/${actorId}?api_key=${apiKey}&append_to_response=movie_credits,tv_credits`
                 });
                 const actorData = actorResponse.json;
-                console.log('Actor Response:', actorData);
+
                 const movies = actorData.movie_credits.cast.filter(movie => movie.order < 10);
                 const tvShows = actorData.tv_credits.cast.filter(show => show.episode_count >= 5);
 

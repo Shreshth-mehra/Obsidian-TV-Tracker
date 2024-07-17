@@ -48,7 +48,7 @@ const DiscoverPopup = ({ open, onClose, genres, movies, themeMode, movieCardColo
             applyFilters();
             setShowResults(true); // Switch to results view
         } else {
-            console.log("Getting recommendations");
+            //console.log("Getting recommendations");
             let allRecommendations = [];
 
             // Map over selectedMovies to get all promises of recommendations
@@ -65,7 +65,7 @@ const DiscoverPopup = ({ open, onClose, genres, movies, themeMode, movieCardColo
                 });
                 recommendationResults.forEach((response, index) => {
                     if (response.results && response.results.length) {
-                        console.log(`Recommendations for movie ${index + 1}:`, response.results);
+                        // console.log(`Recommendations for movie ${index + 1}:`, response.results);
                         allRecommendations.push(...response.results);
                     } else {
                         console.log(`No recommendations found for movie ${index + 1}`);
@@ -75,7 +75,7 @@ const DiscoverPopup = ({ open, onClose, genres, movies, themeMode, movieCardColo
                 // Process the recommendations to count occurrences and calculate average rating and popularity
                 const movieStats = processRecommendations(allRecommendations);
                 const uniqueRecommendations = filterRecommendations(movieStats);
-                console.log(`Unique movie statistics:`, uniqueRecommendations);
+                // console.log(`Unique movie statistics:`, uniqueRecommendations);
 
                 // Sort the array based on the criteria: occurrence, then avg rating, then popularity
                 const sortedMovies = sortMovies(uniqueRecommendations);

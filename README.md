@@ -7,16 +7,14 @@ Movie and TV show tracker plugin for Obsidian
 -   Click to View Info
     -   Clicking on a Actor or director in the metrics shows a popup with Photo of the person, total movies, upcoming movies, known for movies, age and ranks in your library
     -   Can be turned off from settings
+-   Added fields for Total episodes, episode runtime, total seasons and episodes seen for TV Series
+    -   Update existing files from settings
+    -   Additional setting for viewing the episodes seen on Series
+    -   Added total viewing time for TV series (Depends on episodes_seen YAML property)
 -   Added a combined score rating mode
-    -Only works for Actors (for now)
+    -   Only works for Actors (for now)
 -   Added ability to Search by collection name
 -   Added metrics for viewing total Unique Actors and Directors
-
-# Upcoming in v1.3.6
-
--   Number of episodes seen for TV series
--   Search by Movie description
--   Better recommender (This is a tough one, hopefully I can get to it)
 
 # New in v1.3.4 (from 1.2.0)
 
@@ -63,19 +61,11 @@ Happy to implement any feature requests you have or better yet, if you wish you 
 
 A simple Movie and TV show library to keep track of favourite movies and shows. The discover feature helps you find new movies and shows based on your library and ratings. Better and more algorithms for discover new coming soon.
 
-Each Movie and TV show is saved as a markdown file in a folder of your choice (Specified in the settings). Each file has YAML content which is used to Display, filter and sort content. To be able to add new Movies and TV shows you will need to get your personal API key from TMDB. Simply create an account at https://www.themoviedb.org/signup and get the API key. You will then have to enter your API key in the settings for this plugin.
+Each Movie and TV show is saved as a markdown file in a folder of your choice (Specified in the settings). Each file has YAML content which is used to Display, filter and sort content. To be able to add new Movies and TV shows you will need to get your personal API key from TMDB (Free for non-commercial use). Simply create an account at https://www.themoviedb.org/signup and get the API key. You will then have to enter your API key in the settings for this plugin.
 
 A template library of Movies and TV shows is available in the github repo https://github.com/Shreshth-mehra/Obsidian-TV-Tracker.
 
 Note: The plugin does not refresh on its own, please close and open the plugin again to see newly added titles.
-
-## Upcoming
-
-I have already started work on the next update and am planning the following major changes
-
-1. Discover New - Multiple algorithms to choose from for discovering
-2. Faster performance
-3. Improved UI scaling
 
 # Usage
 
