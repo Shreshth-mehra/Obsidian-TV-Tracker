@@ -2,6 +2,14 @@
 
 Movie and TV show tracker plugin for Obsidian
 
+# Showcase as of v1.1.0 (More features in v1.3.0)
+
+![General](https://raw.githubusercontent.com/Shreshth-mehra/Obsidian-TV-Tracker/main/Showcase/general2.gif)
+
+![Discover](https://raw.githubusercontent.com/Shreshth-mehra/Obsidian-TV-Tracker/main/Showcase/discover.gif)
+
+![Add new](https://raw.githubusercontent.com/Shreshth-mehra/Obsidian-TV-Tracker/main/Showcase/addnew2.gif)
+
 # New in v1.3.5
 
 -   Click to View Info
@@ -48,14 +56,6 @@ I work on this in my spare time. If you enjoy using this, please say Thank you o
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/shreshthmehra)
 
 Happy to implement any feature requests you have or better yet, if you wish you can create pull requests.
-
-## Showcase as of v1.1.0 (More features in v1.3.0)
-
-![General](https://raw.githubusercontent.com/Shreshth-mehra/Obsidian-TV-Tracker/main/Showcase/general2.gif)
-
-![Discover](https://raw.githubusercontent.com/Shreshth-mehra/Obsidian-TV-Tracker/main/Showcase/discover.gif)
-
-![Add new](https://raw.githubusercontent.com/Shreshth-mehra/Obsidian-TV-Tracker/main/Showcase/addnew2.gif)
 
 # Description
 
