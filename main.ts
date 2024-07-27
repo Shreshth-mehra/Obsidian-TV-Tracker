@@ -17,6 +17,7 @@ interface TVTrackerSettings {
 	topGenresNumber: number;
 	topActorsNumber: number;
 	topDirectorsNumber: number;
+	topYearsNumber: number;
 	topProductionCompaniesNumber: number;
 	topCollectionsNumber :number;
 	showTrailerAndPosterLinks: boolean;
@@ -24,6 +25,7 @@ interface TVTrackerSettings {
 	minMoviesForMetrics: number;
 	minMoviesForMetricsDirectors: number;
 	minMoviesForMetricsCollections: number;
+	minMoviesForMetricsYears: number;
 	movieMetricsHeadingColor: string;
     movieMetricsSubheadingColor: string;
 	budgetMetricsSubheadingColor: string;
@@ -33,6 +35,8 @@ interface TVTrackerSettings {
 	defaultPropertiesToShow: string;
 	clickForInfo: boolean;
 	showEPSeen: boolean;
+	defaultSortingMode: string;
+	maxMoviesFromCollection: number;
 	
 }
 
@@ -54,9 +58,11 @@ const DEFAULT_TV_SETTINGS: TVTrackerSettings = {
 	topGenresNumber:5,
 	topCollectionsNumber:5,
 	topPerformersNumber:5,
+	topYearsNumber:5,
 	minMoviesForMetrics:7,
 	minMoviesForMetricsDirectors:5,
 	minMoviesForMetricsCollections: 3,
+	minMoviesForMetricsYears: 5,
 	movieMetricsHeadingColor: 'lightblue', 
     movieMetricsSubheadingColor: 'orange', 
 	budgetMetricsSubheadingColor: '#DB6FFC',
@@ -66,7 +72,9 @@ const DEFAULT_TV_SETTINGS: TVTrackerSettings = {
 	defaultLanguageFilters: '',
 	defaultPropertiesToShow: '',
 	clickForInfo: true,
-	showEPSeen: true
+	showEPSeen: true,
+	defaultSortingMode: 'Rating',
+	maxMoviesFromCollection: 3,
 }
 
 export default class TVTrackerPlugin extends Plugin {
@@ -244,115 +252,134 @@ export default class TVTrackerPlugin extends Plugin {
 		setTimeout(() => addLinksNotice.hide(), 3000);
     }
 
-
 	async updateNewProperties() {
-        // Get all movie files
-        const movieFolder = this.app.vault.getAbstractFileByPath(this.settings.movieFolderPath);
-        if (!movieFolder || !(movieFolder as any).children) return;
-
-        const files = (movieFolder as any).children.filter((file: any) => file.extension === 'md');
+		// Get all movie files
+		const movieFolder = this.app.vault.getAbstractFileByPath(this.settings.movieFolderPath);
+		if (!movieFolder || !(movieFolder as any).children) return;
+	
+		const files = (movieFolder as any).children.filter((file: any) => file.extension === 'md');
 		
 		let iteration = 0;
 		let successCount = 0;
-    let errorCount = 0;
-	const updateFilesNotice = new Notice(`Processed files: ${successCount}/${files.length}\n Errors: ${errorCount}`, 0);
-        for (const file of files) {
-			iteration = iteration +1;
+		let errorCount = 0;
+		const updateFilesNotice = new Notice(`Processed files: ${successCount}/${files.length}\n Errors: ${errorCount}`, 0);
 		
-            const filePath = file.path;
-			
-            const cache = this.app.metadataCache.getFileCache(file);
-            const yaml = cache?.frontmatter;
-
-			
-            if (!yaml) {
+		for (const file of files) {
+			iteration = iteration + 1;
+	
+			const filePath = file.path;
+	
+			const cache = this.app.metadataCache.getFileCache(file);
+			const yaml = cache?.frontmatter;
+	
+			if (!yaml) {
 				errorCount++;
 				continue;
 			}
-
-            const type = yaml.Type;
-            const tmdbId = yaml["TMDB ID"];
-			
+	
+			const type = yaml.Type;
+			const tmdbId = yaml["TMDB ID"];
+	
 			if (!type || !tmdbId) {
 				errorCount++;
 				continue;
 			}
-
+	
 			const endpoint = type === 'Movie' ? `movie` : `tv`;
-
-            // Fetch original language from TMDB API
+	
+			// Fetch original language from TMDB API
 			const response = await requestUrl({
 				url: `https://api.themoviedb.org/3/${endpoint}/${tmdbId}?api_key=${this.settings.apiKey}&append_to_response=videos`,
 			});
-
-           
-
-            if (response.status !== 200) {
+	
+			if (response.status !== 200) {
 				errorCount++;
 				continue;
 			}
-
-            const data = response.json;
-
-        const originalLanguage = data.original_language;
-        const overview = data.overview;
-
-        let productionCompanies = '';
-        if (data.production_companies && data.production_companies.length > 0) {
-            productionCompanies = data.production_companies.slice(0, 2).map((company: any) => company.name).join(', ');
-        }
-
-        let trailer = '';
-        if (data.videos && data.videos.results.length > 0) {
-            const trailerData = data.videos.results.find((video: any) => video.type === 'Trailer');
-            if (trailerData) {
-                trailer = `https://www.youtube.com/watch?v=${trailerData.key}`;
-            }
-        }
-
-        let budget = null;
-        let revenue = null;
-        let belongsToCollection = null;
-
-        if (type === 'Movie') {
-            budget = data.budget;
-            revenue = data.revenue;
-            belongsToCollection = data.belongs_to_collection ? data.belongs_to_collection.name : null;
-        }
-		const escapeDoubleQuotes = (str: string) => str.replace(/"/g, '\\"');
-
-		if (yaml.Title) {
-			const title = yaml.Title;
-			if (!title.startsWith('"') || !title.endsWith('"')) {
-				yaml.Title = `"${title}"`;
-			} else {
-				// Escape internal double quotes if the title is already quoted
-				yaml.Title = `${title}`;
-			}
-		}
-        const updatedYaml = {
-            ...yaml,
-            original_language: `"${originalLanguage}"`,
-            overview: `"${escapeDoubleQuotes(overview)}"`,
-            trailer: `"${trailer}"`,
-            budget: budget,
-            revenue: revenue,
-            belongs_to_collection: belongsToCollection ? `"${belongsToCollection}"` : '""',
-            production_company: `"${productionCompanies}"`,
-        };
-
 	
-        const updatedYamlContent = `---\n${Object.entries(updatedYaml).map(([key, value]) => `${key}: ${typeof value === 'string' ? value : JSON.stringify(value)}`).join('\n')}\n---`;
-     
+			const data = response.json;
+	
+			const originalLanguage = data.original_language;
+			const overview = data.overview;
+	
+			let productionCompanies = '';
+			if (data.production_companies && data.production_companies.length > 0) {
+				productionCompanies = data.production_companies.slice(0, 2).map((company: any) => company.name).join(', ');
+			}
+	
+			let trailer = '';
+			if (data.videos && data.videos.results.length > 0) {
+				const trailerData = data.videos.results.find((video: any) => video.type === 'Trailer');
+				if (trailerData) {
+					trailer = `https://www.youtube.com/watch?v=${trailerData.key}`;
+				}
+			}
+	
+			let budget = null;
+			let revenue = null;
+			let belongsToCollection = null;
+			let releaseDate = null;
+	
+			if (type === 'Movie') {
+				budget = data.budget;
+				revenue = data.revenue;
+				belongsToCollection = data.belongs_to_collection ? data.belongs_to_collection.name : null;
+				releaseDate = data.release_date;
+			}
+	
+			const escapeDoubleQuotes = (str: string) => str.replace(/"/g, '\\"');
+	
+			if (yaml.Title) {
+				const title = yaml.Title;
+				if (!title.startsWith('"') || !title.endsWith('"')) {
+					yaml.Title = `"${title}"`;
+				} else {
+					// Escape internal double quotes if the title is already quoted
+					yaml.Title = `${title}`;
+				}
+			}
+			let updatedYaml={}
+			if(releaseDate){
+				 updatedYaml = {
+					...yaml,
+					original_language: `"${originalLanguage}"`,
+					overview: `"${escapeDoubleQuotes(overview)}"`,
+					trailer: `"${trailer}"`,
+					budget: budget,
+					revenue: revenue,
+					belongs_to_collection: belongsToCollection ? `"${belongsToCollection}"` : '""',
+					production_company: `"${productionCompanies}"`,
+					release_date: `"${releaseDate}"`,
+				};
+			}
+			else{
+				updatedYaml = {
+					...yaml,
+					original_language: `"${originalLanguage}"`,
+					overview: `"${escapeDoubleQuotes(overview)}"`,
+					trailer: `"${trailer}"`,
+					budget: budget,
+					revenue: revenue,
+					belongs_to_collection: belongsToCollection ? `"${belongsToCollection}"` : '""',
+					production_company: `"${productionCompanies}"`,
+				};
+			}
+	
 			
-            const fileContent = await this.app.vault.read(file);
-
-
+	
+			// if (type === 'Movie') {
+			// 	updatedYaml.release_date = 
+			// }
+	
+			const updatedYamlContent = `---\n${Object.entries(updatedYaml).map(([key, value]) => `${key}: ${typeof value === 'string' ? value : JSON.stringify(value)}`).join('\n')}\n---`;
+	
+			const fileContent = await this.app.vault.read(file);
+	
 			const yamlRegex = /^---[\r\n]+[\s\S]*?[\r\n]+---/m;
-
+	
 			if (yamlRegex.test(fileContent)) {
 				const updatedFileContent = fileContent.replace(yamlRegex, updatedYamlContent);
-				
+	
 				// Save the updated content back to the file
 				await this.app.vault.modify(file, updatedFileContent);
 				successCount++;
@@ -360,15 +387,14 @@ export default class TVTrackerPlugin extends Plugin {
 				console.error("YAML front matter not found in file:", file.path);
 				errorCount++;
 			}
-    
-			
-       updateFilesNotice.setMessage(`Processed files: ${successCount}/${files.length}\n Errors: ${errorCount}`);
-        }
-
-        updateFilesNotice.setMessage(`Processising Complete. New properties added for ${successCount} files. ${errorCount} files encountered errors.`);
+	
+			updateFilesNotice.setMessage(`Processed files: ${successCount}/${files.length}\n Errors: ${errorCount}`);
+		}
+	
+		updateFilesNotice.setMessage(`Processing Complete. New properties added for ${successCount} files. ${errorCount} files encountered errors.`);
 		setTimeout(() => updateFilesNotice.hide(), 3000);
 	}
-
+	
 	async updateEPTracking() {
 		// Get all series files
 		const seriesFolder = this.app.vault.getAbstractFileByPath(this.settings.movieFolderPath);
@@ -465,8 +491,6 @@ export default class TVTrackerPlugin extends Plugin {
 		setTimeout(() => updateFilesNotice.hide(), 3000);
 	}
 	
-
-	
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_TV_SETTINGS, await this.loadData());
 	}
@@ -514,6 +538,7 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 				await this.plugin.saveSettings();
 			}));
 
+	
 			new Setting(containerEl)
             .setName('Show Trailer and Poster Links')
             .setDesc('Enable this to display trailer and poster links in new files. Only affects the new files. To update existing files see Update Files section below.')
@@ -573,6 +598,22 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 							this.plugin.settings.defaultPropertiesToShow = value;
 							await this.plugin.saveSettings();
 						}));
+
+						new Setting(containerEl)
+						.setName('Default Sorting Mode')
+						.setDesc('Default Sorting mode. Options are Rating, Alphabetical, Avg vote, Hidden gem factor ')
+						.addDropdown(dropdown => dropdown
+							.addOptions({
+								'Rating': 'Rating',
+								'Alphabetical': 'Alphabetical',
+								'Avg vote': 'Avg vote',
+								'Hidden gem factor': 'Hidden gem factor'
+							})
+							.setValue(this.plugin.settings.defaultSortingMode)
+							.onChange(async (value) => {
+								this.plugin.settings.defaultSortingMode = value;
+								await this.plugin.saveSettings();
+							}));
 	
 
 				new Setting(containerEl)
@@ -625,7 +666,7 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 		.setName('Update Files with new data')
-		.setDesc('Fetches overview, trailer link, original language, production company, budget, revenue for all movies/shows and updates the YAML. These new properties were added in v1.3.0')
+		.setDesc('Fetches overview, trailer link, original language, production company, budget, revenue and release date for all movies/shows and updates the YAML. These new properties were added in v1.3.0. Use this button for any future updates also to fetch new properties (If properties already exist they will be overwritten).')
 		.addButton(button => button
 			.setButtonText('Update')
 			.setCta()
@@ -824,6 +865,18 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
+				
+			new Setting(containerEl)
+			.setName('Number of top Years to show')
+			.setDesc('Number of top Years to show in metrics')
+			.addText(text => text
+				.setValue(String(this.plugin.settings.topYearsNumber))
+				.onChange(async (value) => {
+					this.plugin.settings.topYearsNumber = Number(value);
+					await this.plugin.saveSettings();
+				}));
+
+
 				new Setting(containerEl)
 				.setName('Number of top production companies to show')
 				.setDesc('Number of top production companies to show in metrics')
@@ -867,6 +920,16 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 				await this.plugin.saveSettings();
 			}));
 
+			// new Setting(containerEl)
+			// .setName('Maximum number of movies from a single collection allowed ')
+			// .setDesc('Maximum number of movies from a single collection that will count towards minimum number of movies for avg rating metrics')
+			// .addText(text => text
+			// 	.setValue(String(this.plugin.settings.maxMoviesFromCollection))
+			// 	.onChange(async (value) => {
+			// 		this.plugin.settings.maxMoviesFromCollection = Number(value);
+			// 		await this.plugin.saveSettings();
+			// 	}));
+
 			new Setting(containerEl)
 			.setName('Minimum number of movies for metric - Director and Production company ')
 			.setDesc('Minimum number of movie for Director and Production company for avg rating based metrics')
@@ -886,6 +949,16 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 						this.plugin.settings.minMoviesForMetricsCollections = Number(value);
 						await this.plugin.saveSettings();
 					}));
+
+					new Setting(containerEl)
+					.setName('Minimum number of movies for metric - Years ')
+					.setDesc('Minimum number of movie for a Year for avg rating based metrics')
+					.addText(text => text
+						.setValue(String(this.plugin.settings.minMoviesForMetricsYears))
+						.onChange(async (value) => {
+							this.plugin.settings.minMoviesForMetricsYears = Number(value);
+							await this.plugin.saveSettings();
+						}));
 		
 	}
 

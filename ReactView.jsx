@@ -65,7 +65,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
   const [searchTerm, setSearchTerm] = useState('');
   const [showWatchlist, setShowWatchlist] = useState(false);
   const [legendOpen, setLegendOpen] = useState(false);
-  const [sortOption, setSortOption] = useState('Rating');
+  const [sortOption, setSortOption] = useState(plugin.settings.defaultSortingMode);
   const [sortOrder, setSortOrder] = useState('descending');
   const [showDiscoverPopup, setShowDiscoverPopup] = useState(false);
   const [selectedLanguages, setSelectedLanguages] = useState(defaultLanguages);
@@ -195,6 +195,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
         const matchesTitle = movie.Title && movie.Title.toString().toLowerCase().includes(lowerCaseSearchTerm);
         const matchesCollection = movie.belongs_to_collection && movie.belongs_to_collection.toString().toLowerCase().includes(lowerCaseSearchTerm);
         const matchesDirector = movie.Director ? movie.Director.toLowerCase().includes(lowerCaseSearchTerm) : false;
+        const matchesYear = movie.release_date ? movie.release_date.includes(lowerCaseSearchTerm) : false;
 
         const matchesCast = movie.Cast && movie.Cast.split(', ').some(castMember =>
           castMember.toLowerCase().includes(lowerCaseSearchTerm)
@@ -209,7 +210,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
         const matchesRating = movie.Rating >= selectedRating;
         const matchesWatchlist = !showWatchlist || movie.Status === 'Watchlist';
         const matchesLanguage = selectedLanguages.length === 0 || selectedLanguages.includes(movie.original_language);
-        return matchesGenre && matchesType && matchesRating && matchesLanguage && (matchesTitle || matchesCast || matchesDirector || matchesProductionComapny || matchesCollection) && matchesWatchlist;
+        return matchesGenre && matchesType && matchesRating && matchesLanguage && (matchesTitle || matchesCast || matchesDirector || matchesProductionComapny || matchesCollection || matchesYear) && matchesWatchlist;
       } catch (error) {
         new Notice(`Error processing movie ${movie.Title}. Showing rest of the results. Please console for detailed error`);
         console.error(`Error processing movie ${movie.Title}: ${error.message}`);

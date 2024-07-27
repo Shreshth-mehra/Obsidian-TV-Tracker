@@ -10,6 +10,13 @@ Movie and TV show tracker plugin for Obsidian
 
 ![Add new](https://raw.githubusercontent.com/Shreshth-mehra/Obsidian-TV-Tracker/main/Showcase/addnew2.gif)
 
+# New in v1.3.6
+
+-   Added property for release date to Movies (Use the Update button in settings to add this)
+-   Metrics for Top Years of Movies by count, Simple rating and avg rating
+-   Search by Movie year
+-   Setting for default sorting mode
+
 # New in v1.3.5
 
 -   Click to View Info

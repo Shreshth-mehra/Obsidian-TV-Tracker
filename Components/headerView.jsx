@@ -117,11 +117,13 @@ const Header = ({ showTrailerAndPosterLinks, movieProperties, handleClearAllFilt
       let totalSeasons = 0;
       let episode_runtime = 0;
       let episodes_seen = 0;
+      let releaseDate = null;
 
       if (!isTvShow) {
         budget = detailsData.budget;
         revenue = detailsData.revenue;
         belongsToCollection = detailsData.belongs_to_collection ? detailsData.belongs_to_collection.name : null;
+        releaseDate = detailsData.release_date;
       }
 
       if (isTvShow) {
@@ -156,6 +158,7 @@ ${isTvShow ? `total_episodes: ${totalEpisodes}` : ''}
 ${isTvShow ? `total_seasons: ${totalSeasons}` : ''}
 ${isTvShow ? `episode_runtime: ${episode_runtime}` : ''}
 ${isTvShow ? `episodes_seen: ${episodes_seen}` : ''}
+${isTvShow ? '' : `release_date: ${releaseDate}`}
 ---`;
 
       let content = movieYAML;
