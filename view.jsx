@@ -9,10 +9,10 @@ export const VIEW_TV = "tv-view"
 
 export class TVTracker extends ItemView {
 
-    constructor(leaf, plugin, themeMode) {
+    constructor(leaf, plugin, systemThemeMode) {
         super(leaf);
         this.plugin = plugin;
-        this.themeMode = themeMode;
+        this.systemThemeMode = systemThemeMode;
     }
 
     getViewType() {
@@ -33,6 +33,8 @@ export class TVTracker extends ItemView {
     async onOpen() {
         try {
 
+            console.log("System theme is ", this.systemThemeMode);
+            console.log("App theme mode is ", this.plugin.settings.themeMode);
             const folder = this.plugin.app.vault.getAbstractFileByPath(this.plugin.settings.movieFolderPath);
 
             let moviesData = [];
@@ -64,7 +66,7 @@ export class TVTracker extends ItemView {
             const root = createRoot(this.containerEl.children[1]);
             root.render(
                 <React.StrictMode>
-                    <ReactView moviesData={moviesData} createMarkdownFile={this.createMarkdownFile} themeMode={this.themeMode} plugin={this.plugin} defaultLanguages={defaultLanguages} defaultProperties={defaultProperties} />
+                    <ReactView moviesData={moviesData} createMarkdownFile={this.createMarkdownFile} themeMode={this.systemThemeMode} plugin={this.plugin} defaultLanguages={defaultLanguages} defaultProperties={defaultProperties} />
                 </React.StrictMode>
             );
         } catch (error) {

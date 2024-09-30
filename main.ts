@@ -37,6 +37,7 @@ interface TVTrackerSettings {
 	showEPSeen: boolean;
 	defaultSortingMode: string;
 	maxMoviesFromCollection: number;
+	themeMode: string;
 	
 }
 
@@ -75,22 +76,23 @@ const DEFAULT_TV_SETTINGS: TVTrackerSettings = {
 	showEPSeen: true,
 	defaultSortingMode: 'Rating',
 	maxMoviesFromCollection: 3,
+	themeMode: 'Light'
 }
 
 export default class TVTrackerPlugin extends Plugin {
 	settings: TVTrackerSettings;
-	themeMode: string;
+	systemThemeMode: string;
 
 	async onload() {
 		await this.loadSettings();
-		this.themeMode = 'light'; // Default to light
+		this.systemThemeMode = 'light'; // Default to light
 		const rootElement = document.body; // or another root element of the app
 
 		if (rootElement.classList.contains('theme-dark')) {
-			this.themeMode = 'dark';
+			this.systemThemeMode = 'dark';
 		}
 
-		this.registerView(VIEW_TV, (leaf) => new TVTracker(leaf,this, this.themeMode));
+		this.registerView(VIEW_TV, (leaf) => new TVTracker(leaf,this, this.systemThemeMode));
 		this.addRibbonIcon('star','Open TV Tracker', ()=>  {
 			this.activateView();
 	
@@ -106,7 +108,7 @@ export default class TVTrackerPlugin extends Plugin {
 	async openView() {
 		// Create a new tab in the main editor for your view
 		const leaf = this.app.workspace.getLeaf(true);
-		const view = new TVTracker(leaf,this, this.themeMode);
+		const view = new TVTracker(leaf,this, this.systemThemeMode);
 		leaf.setViewState({
 			type: VIEW_TV,
 			active: true,
@@ -698,6 +700,20 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 	}
 
 	addStyleSettings(containerEl: HTMLElement) {
+		new Setting(containerEl)
+		.setName('Theme Mode')
+		.setDesc('Dark, Light or Adapt to system ')
+		.addDropdown(dropdown => dropdown
+			.addOptions({
+				'Dark': 'Dark',
+				'Light': 'Light'
+				
+			})
+			.setValue(this.plugin.settings.themeMode)
+			.onChange(async (value) => {
+				this.plugin.settings.themeMode = value;
+				await this.plugin.saveSettings();
+			}));
 
 		new Setting(containerEl)
         .setName('Background color for movie cards')
