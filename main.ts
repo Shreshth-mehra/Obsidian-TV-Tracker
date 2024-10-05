@@ -38,6 +38,7 @@ interface TVTrackerSettings {
 	defaultSortingMode: string;
 	maxMoviesFromCollection: number;
 	themeMode: string;
+	title: string;
 	
 }
 
@@ -76,7 +77,8 @@ const DEFAULT_TV_SETTINGS: TVTrackerSettings = {
 	showEPSeen: true,
 	defaultSortingMode: 'Rating',
 	maxMoviesFromCollection: 3,
-	themeMode: 'Light'
+	themeMode: 'Light',
+	title:'TV Tracker 🎬📽️'
 }
 
 export default class TVTrackerPlugin extends Plugin {
@@ -516,6 +518,15 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 
 		containerEl.empty();
 
+		new Setting(containerEl)
+		.setName('Title to display')
+		.setDesc('The title you want displayed at the top in the plugin')
+		.addText(text => text
+			.setValue(this.plugin.settings.title)
+			.onChange(async (value) => {
+				this.plugin.settings.title = value;
+				await this.plugin.saveSettings();
+			}));
 
      
 

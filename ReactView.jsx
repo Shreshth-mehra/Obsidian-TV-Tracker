@@ -232,7 +232,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
   return (
     <Container>
       <Typography variant="h4" component="h1" sx={{ flexGrow: 1 }}>
-        TV Tracker
+        {plugin.settings.title}
       </Typography>
       <Header
         showTrailerAndPosterLinks={plugin.settings.showTrailerAndPosterLinks}
