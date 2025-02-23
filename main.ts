@@ -1,4 +1,4 @@
-import { App, Plugin, PluginSettingTab, Setting, Notice, requestUrl} from 'obsidian';
+import { App, Plugin, PluginSettingTab, Setting, Notice, requestUrl, TFile} from 'obsidian';
 import { TVTracker,VIEW_TV } from 'view';
 
 
@@ -39,7 +39,8 @@ interface TVTrackerSettings {
 	maxMoviesFromCollection: number;
 	themeMode: string;
 	title: string;
-	
+	BlockBusterDefinition: number;
+	countryForAvailableOn: string;
 }
 
 const DEFAULT_TV_SETTINGS: TVTrackerSettings = {
@@ -78,7 +79,9 @@ const DEFAULT_TV_SETTINGS: TVTrackerSettings = {
 	defaultSortingMode: 'Rating',
 	maxMoviesFromCollection: 3,
 	themeMode: 'Light',
-	title:'TV Tracker 🎬📽️'
+	title:'TV Tracker 🎬📽️',
+	BlockBusterDefinition: 4.5,
+	countryForAvailableOn: 'Pending'
 }
 
 export default class TVTrackerPlugin extends Plugin {
@@ -102,6 +105,20 @@ export default class TVTrackerPlugin extends Plugin {
 
 		this.addSettingTab(new TVTrackerSettingsTab(this.app, this));
 		
+		this.addCommand({
+			id: 'add-episode-list',
+			name: 'Add episode list for current file',
+			callback: () => {
+				const activeFile = this.app.workspace.getActiveFile();
+				if (!activeFile) {
+					new Notice('No active file found.');
+					return;
+				}
+				console.log("Active file", activeFile);
+				this.addEpisodeListToCurrentFile(activeFile)
+			}
+		});
+
 	}
 	onunload() {
 
@@ -502,6 +519,55 @@ export default class TVTrackerPlugin extends Plugin {
 	async saveSettings() {
 		await this.saveData(this.settings);
 	}
+
+	async addEpisodeListToCurrentFile(activeFile:TFile) {
+		console.log("Executing now");
+		
+		const fileContent = await this.app.vault.read(activeFile);
+		const frontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
+		console.log("Frontmatter", frontmatter);
+		if (!frontmatter || frontmatter.Type !== 'Series') {
+			new Notice('The active file is not a Series.');
+			return;
+		}
+
+		if (!frontmatter["TMDB ID"]) {
+			new Notice('TMDB ID is missing in the frontmatter.');
+			return;
+		}
+		console.log("TMDB ID", frontmatter["TMDB ID"]);
+
+		const tmdbId = frontmatter["TMDB ID"];
+		const apiKey = this.settings.apiKey;
+		const url = `https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${apiKey}&append_to_response=episodes`;
+
+		try {
+			const response = await requestUrl({ url });
+			const data = response.json;
+			const seasons = data.seasons || [];
+			console.log("Seasons", seasons);
+			let episodeList = '\n# Episodes\n';
+			for (const season of seasons) {
+				if (season.season_number > 0) {
+					episodeList += `\n## Season ${season.season_number}\n`;
+					const seasonDetails = await requestUrl({
+						url: `https://api.themoviedb.org/3/tv/${tmdbId}/season/${season.season_number}?api_key=${apiKey}`
+					});
+					const seasonData = seasonDetails.json;
+					for (const episode of seasonData.episodes) {
+						episodeList += `- [ ] Episode ${episode.episode_number}: ${episode.name}\n`;
+					}
+				}
+			}
+
+			await this.app.vault.modify(activeFile, fileContent + episodeList);
+			new Notice('Episode list added successfully.');
+		} catch (error) {
+			new Notice('Error fetching episode data.');
+		}
+	}
+
+
 }
 
 

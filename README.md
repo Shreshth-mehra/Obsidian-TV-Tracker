@@ -10,6 +10,12 @@ Movie and TV show tracker plugin for Obsidian
 
 ![Add new](https://raw.githubusercontent.com/Shreshth-mehra/Obsidian-TV-Tracker/main/Showcase/addnew2.gif)
 
+
+# New in v1.3.8
+
+- Added New method for Rating Actors - Blockbuster count
+- Added a command for adding series Episodes as a checklist
+
 # New in v1.3.7
 - Customizable title for the view page
 

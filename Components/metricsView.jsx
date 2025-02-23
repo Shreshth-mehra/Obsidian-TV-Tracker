@@ -104,6 +104,7 @@ const Metrics = ({
     let genreMovieCount = {};
     let actorRatingSum = {};
     let actorMovieCount = {};
+
     let actorMovieCountFromCollection = {};
     let durationSum = 0;
     let tvDurationSum = 0;
@@ -128,6 +129,13 @@ const Metrics = ({
     const avgDirectorRatings = {};
     const avgProductionCompanyRatings = {};
     const avgCollectionRatings = {};
+
+    const blockbusterActorCount = {};
+    const blockbusterDirectorCount = {};
+    const blockbusterGenreCount = {};
+    const blockbusterProductionCompanyCount = {};
+    const blockbusterYearCount = {};
+
 
     const weightCount = 1;
     const weightRating = 1;
@@ -154,6 +162,34 @@ const Metrics = ({
 
         // Extract the year from release_date
         const releaseYear = movie.release_date ? movie.release_date.split('-')[0] : null;
+
+        if (movieRating >= plugin.settings.BlockBusterDefinition) {
+          // Count for actors
+          actors.forEach(actor => {
+            blockbusterActorCount[actor] = (blockbusterActorCount[actor] || 0) + 1;
+          });
+
+          // Count for directors
+          if (director) {
+            blockbusterDirectorCount[director] = (blockbusterDirectorCount[director] || 0) + 1;
+          }
+
+          // Count for genres
+          genres.forEach(genre => {
+            blockbusterGenreCount[genre] = (blockbusterGenreCount[genre] || 0) + 1;
+          });
+
+          // Count for production companies
+          productionCompanies.forEach(company => {
+            blockbusterProductionCompanyCount[company] = (blockbusterProductionCompanyCount[company] || 0) + 1;
+          });
+
+          // Count for years
+          if (releaseYear) {
+            blockbusterYearCount[releaseYear] = (blockbusterYearCount[releaseYear] || 0) + 1;
+          }
+        }
+
 
         if (releaseYear) {
           yearMovieCount[releaseYear] = (yearMovieCount[releaseYear] || 0) + 1;
@@ -286,6 +322,14 @@ const Metrics = ({
       }
       setTopYears(Object.entries(avgYearRatings).sort((a, b) => b[1] - a[1]).slice(0, topYearsNumber));
     }
+    else if (ratingMode === 'Blockbuster Count') {
+      setTopGenres(Object.entries(blockbusterGenreCount).sort((a, b) => b[1] - a[1]).slice(0, topGenresNumber));
+      setTopActors(Object.entries(blockbusterActorCount).sort((a, b) => b[1] - a[1]).slice(0, topActorsNumber));
+      setTopDirectors(Object.entries(blockbusterDirectorCount).sort((a, b) => b[1] - a[1]).slice(0, topDirectorsNumber));
+      setTopProductionCompanies(Object.entries(blockbusterProductionCompanyCount).sort((a, b) => b[1] - a[1]).slice(0, topProductionCompaniesNumber));
+      setTopYears(Object.entries(blockbusterYearCount).sort((a, b) => b[1] - a[1]).slice(0, topYearsNumber));
+    }
+
 
     for (const genre in genreRatingSum) {
       avgGenreRatings[genre] = (genreRatingSum[genre] / genreMovieCount[genre]).toFixed(2);
@@ -513,6 +557,7 @@ const Metrics = ({
               <MenuItem value="Simple Rating">Simple Rating</MenuItem>
               <MenuItem value="Balanced Rating">Balanced Rating</MenuItem>
               <MenuItem value="Avg Rating">Avg Rating</MenuItem>
+              <MenuItem value="Blockbuster Count">Blockbuster Count</MenuItem>
               <MenuItem value="Combined Score">Combined Score</MenuItem>
             </Select>
           </FormControl>
