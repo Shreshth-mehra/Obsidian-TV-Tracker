@@ -11,62 +11,11 @@ Movie and TV show tracker plugin for Obsidian
 ![Add new](https://raw.githubusercontent.com/Shreshth-mehra/Obsidian-TV-Tracker/main/Showcase/addnew2.gif)
 
 
-# New in v1.3.8
+# New in v1.3.9
+- Added Country specific availability on streaming services
+- Added Metrics for different OTT providers
 
-- Added New method for Rating Actors - Blockbuster count
-- Added a command for adding series Episodes as a checklist
-
-# New in v1.3.7
-- Customizable title for the view page
-
-# New in v1.3.6
-
--   Added property for release date to Movies (Use the Update button in settings to add this)
--   Metrics for Top Years of Movies by count, Simple rating and avg rating
--   Search by Movie year
--   Setting for default sorting mode
-
-# New in v1.3.5
-
--   Click to View Info
-    -   Clicking on a Actor or director in the metrics shows a popup with Photo of the person, total movies, upcoming movies, known for movies, age and ranks in your library
-    -   Can be turned off from settings
--   Added fields for Total episodes, episode runtime, total seasons and episodes seen for TV Series
-    -   Update existing files from settings
-    -   Additional setting for viewing the episodes seen on Series
-    -   Added total viewing time for TV series (Depends on episodes_seen YAML property)
--   Added a combined score rating mode
-    -   Only works for Actors (for now)
--   Added ability to Search by collection name
--   Added metrics for viewing total Unique Actors and Directors
-
-# New in v1.3.4 (from 1.2.0)
-
--   Added more properties ( You can update the existing files from the settings)
-
-1. Overview
-2. Trailer link
-3. Original Language
-4. Production Company
-5. Belongs to Collection
-6. Budget
-7. Revenue
-
--   More Metrics
-
-1. Top Production Companies
-2. Top Collections
-3. Budget Metrics
-   a. Highest and Lowest Revenue
-   b. Highest and Lowest Budget
-   c. Under and Over Performer (Ratio of Revenue to Budget)
-
--   Added Clear all filters button
--   Added Language filters
--   Set default language filters in settings
--   Set default properties to show in settings
--   Can search using Production companies now
--   Improved Error handling and Notices
+Please "Available on" section below for further information
 
 I work on this in my spare time. If you enjoy using this, please say Thank you or
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/shreshthmehra)
@@ -118,6 +67,18 @@ Genre taste index is the ration of User rating to public rating for each of the 
 
 Setting Language filter also changes the metrics. For example, if you have English (en) and Spanish (es) movies in your vault and 'en' filter is applied then the metrics will only include movies with original_language as 'en'
 
+### Available On
+The plugin now displays streaming service logos on each title's card, showing where you can watch it. This feature is country-specific, and you can set your country in the plugin settings.
+
+To enable this feature:
+0. Update to v1.3.9
+1. Set your country in the plugin settings
+2. Click the "Update streaming availability" button to add the streaming information to your titles
+
+If you change your country setting later, you'll need to click the update button again to refresh the streaming information for all titles.
+
+If you encounter any issues while updating streaming availability, please check the console logs for error details and share them in a GitHub issue for assistance.
+
 ### Click for info
 
 If enabled in settings, on clicking an Actor or Director name in the metrics will show a pop up with Photo of the person, total movies, upcoming movies, known for movies, age and ranks in your library.
@@ -128,7 +89,7 @@ Ranks in your library - To reduce processsing these are only computed and saved 
 
 ## Settings
 
-The plugin was designed for high customization and hence has multiple configurable settings. The two most improtant ones are the TMDB API key and the Folder path. The folder path is relative to the root of your obsidian vault (where the .obsidian folder is). So if the content is in a folder called Movies which is in the root, then the path would simply be 'Movies'
+The plugin was designed for high customization and hence has multiple configurable settings. The two most improtant ones are the TMDB API key and the Folder path. The folder path is relative to the root of your obsidian vault (where the .obsidian folder is). So, if the content is in a folder called Movies which is in the root, then the path would simply be 'Movies'
 
 ### Updating Files
 

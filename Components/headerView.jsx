@@ -92,6 +92,17 @@ const Header = ({ showTrailerAndPosterLinks, movieProperties, handleClearAllFilt
       const creditsData = await creditsResponse.json;
       const directors = creditsData.crew.filter(member => member.job === 'Director').map(director => director.name).join(', ');
 
+      // Fetch streaming availability
+      const providersUrl = `https://api.themoviedb.org/3/${detailsType}/${selectedItem.id}/watch/providers?api_key=${plugin.settings.apiKey}`;
+      const providersResponse = await requestUrl({
+        url: providersUrl,
+        method: 'GET',
+      });
+      const providersData = await providersResponse.json;
+      const countryCode = plugin.settings.countryAvailableOn;
+      const providers = providersData.results[countryCode]?.flatrate || [];
+      const providerNames = providers.map(provider => provider.provider_name).join(', ');
+
       const originalLanguage = detailsData.original_language;
       const overview = detailsData.overview;
 
@@ -154,6 +165,7 @@ budget: ${budget}
 revenue: ${revenue}
 belongs_to_collection: ${belongsToCollection ? `"${belongsToCollection}"` : '""'}
 production_company: "${productionCompanies}"
+Available On: "${escapeDoubleQuotes(providerNames)}"
 ${isTvShow ? `total_episodes: ${totalEpisodes}` : ''}
 ${isTvShow ? `total_seasons: ${totalSeasons}` : ''}
 ${isTvShow ? `episode_runtime: ${episode_runtime}` : ''}

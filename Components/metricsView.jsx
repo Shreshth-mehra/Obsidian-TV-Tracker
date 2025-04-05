@@ -66,6 +66,8 @@ const Metrics = ({
   const [expandedLowestBudgets, setExpandedLowestBudgets] = useState(false);
   const [expandedMostRevenue, setExpandedMostRevenue] = useState(false);
   const [expandedLeastRevenue, setExpandedLeastRevenue] = useState(false);
+  const [expandedOTT, setExpandedOTT] = useState(false);
+  const [ottMetrics, setOttMetrics] = useState([]);
   const [ratingMode, setRatingMode] = useState('Count');
   const [genreTasteIndexAvg, setGenreTasteIndexAvg] = useState({});
   const [includeWatchlist, setIncludeWatchlist] = useState(false);
@@ -136,6 +138,9 @@ const Metrics = ({
     const blockbusterProductionCompanyCount = {};
     const blockbusterYearCount = {};
 
+    let ottProviderCount = {};
+    let ottMovieCount = {};
+    let ottShowCount = {};
 
     const weightCount = 1;
     const weightRating = 1;
@@ -257,6 +262,28 @@ const Metrics = ({
             lowestBudgetsList.push({ title: movie.Title, budget });
             mostRevenueList.push({ title: movie.Title, revenue });
             leastRevenueList.push({ title: movie.Title, revenue });
+          }
+        }
+
+        // Process OTT providers
+        if (movie['Available On'] && movie['Available On'].trim() !== '') {
+          // Remove double quotes and split by comma
+          const ottString = movie['Available On'].replace(/"/g, '').trim();
+          if (ottString !== '') {
+            const ottProviders = ottString.split(',').map(provider => provider.trim());
+            
+            ottProviders.forEach(provider => {
+              if (provider !== '') {
+                ottProviderCount[provider] = (ottProviderCount[provider] || 0) + 1;
+                
+                // Count separately for movies and shows
+                if (movie.Type === 'Movie') {
+                  ottMovieCount[provider] = (ottMovieCount[provider] || 0) + 1;
+                } else if (movie.Type === 'Series') {
+                  ottShowCount[provider] = (ottShowCount[provider] || 0) + 1;
+                }
+              }
+            });
           }
         }
       }
@@ -442,6 +469,17 @@ const Metrics = ({
     setGenreTasteIndexAvg(Object.entries(genreTasteIndexAvg)
       .sort((a, b) => b[1] - a[1])
       .reduce((acc, [genre, avg]) => ({ ...acc, [genre]: avg }), {}));
+
+    // Sort and set OTT metrics
+    const sortedOttMetrics = Object.entries(ottProviderCount)
+      .sort((a, b) => b[1] - a[1])
+      .map(([provider, count]) => ({ 
+        provider, 
+        count,
+        movieCount: ottMovieCount[provider] || 0,
+        showCount: ottShowCount[provider] || 0
+      }));
+    setOttMetrics(sortedOttMetrics);
   };
 
 
@@ -521,6 +559,10 @@ const Metrics = ({
 
   const handleExpandClickLeastRevenue = () => {
     setExpandedLeastRevenue(!expandedLeastRevenue);
+  };
+
+  const handleExpandClickOTT = () => {
+    setExpandedOTT(!expandedOTT);
   };
 
 
@@ -755,6 +797,23 @@ const Metrics = ({
             </Collapse>
           </Box>
         )}
+
+
+        <ExpandableSection
+          title="OTT Metrics:"
+          items={ottMetrics.map(({ provider, count, movieCount, showCount }) => ({ 
+            provider, 
+            value: `${count} titles (${movieCount} movies, ${showCount} shows)`
+          }))}
+          itemKey="provider"
+          itemLabel="provider"
+          itemValue="value"
+          themeMode={themeMode}
+          headingColor={movieMetricsSubheadingColor}
+          expanded={expandedOTT}
+          onExpand={handleExpandClickOTT}
+        />
+  
         <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor }}>Total Movie Watching Time: {totalDuration}</Typography>
         <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor }}>Total Series Watching Time: {totalTVDuration}</Typography>
         <Typography variant="subtitle1" style={{ color: movieMetricsSubheadingColor }}>Unique Actors: {totalActors}</Typography>

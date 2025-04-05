@@ -4,7 +4,8 @@ import Card from '@mui/material/Card';
 import CardMedia from '@mui/material/CardMedia';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
-
+import Box from '@mui/material/Box';
+import { providerLogos } from './providerLogos';
 
 const MovieGrid = ({ movies, selectedProperties, numberOfColumns, toggleFittedImage, movieCardColor, plugin }) => {
 
@@ -24,6 +25,17 @@ const MovieGrid = ({ movies, selectedProperties, numberOfColumns, toggleFittedIm
 
     plugin.app.workspace.openLinkText(filePath, '/', true);
   }
+
+  // Function to parse provider names, handling both quoted and unquoted strings
+  const parseProviders = (providersString) => {
+    if (!providersString) return [];
+    
+    // Remove surrounding quotes if present
+    const cleanString = providersString.replace(/^"|"$/g, '');
+    
+    // Split by comma and trim each provider name
+    return cleanString.split(',').map(provider => provider.trim());
+  };
 
   return (
     <Grid container spacing={2}>
@@ -61,6 +73,24 @@ const MovieGrid = ({ movies, selectedProperties, numberOfColumns, toggleFittedIm
                   {`${prop}: ${movie[prop]}`}
                 </Typography>
               ))}
+              {movie['Available On'] && (
+                <Box sx={{ mt: 1 }}>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {parseProviders(movie['Available On']).map((platform) => {
+                      const logoUrl = providerLogos[platform];
+                      return logoUrl ? (
+                        <img
+                          key={platform}
+                          src={logoUrl}
+                          alt={platform}
+                          style={{ height: '24px', width: 'auto', objectFit: 'contain' }}
+                          title={platform}
+                        />
+                      ) : null;
+                    })}
+                  </Box>
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Grid>

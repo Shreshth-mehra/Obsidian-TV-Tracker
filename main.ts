@@ -1,5 +1,6 @@
 import { App, Plugin, PluginSettingTab, Setting, Notice, requestUrl, TFile} from 'obsidian';
 import { TVTracker,VIEW_TV } from 'view';
+import { TMDB_COUNTRIES } from './countries';
 
 
 interface TVTrackerSettings {
@@ -40,7 +41,7 @@ interface TVTrackerSettings {
 	themeMode: string;
 	title: string;
 	BlockBusterDefinition: number;
-	countryForAvailableOn: string;
+	countryAvailableOn: string;
 }
 
 const DEFAULT_TV_SETTINGS: TVTrackerSettings = {
@@ -81,7 +82,7 @@ const DEFAULT_TV_SETTINGS: TVTrackerSettings = {
 	themeMode: 'Light',
 	title:'TV Tracker 🎬📽️',
 	BlockBusterDefinition: 4.5,
-	countryForAvailableOn: 'Pending'
+	countryAvailableOn: 'US'
 }
 
 export default class TVTrackerPlugin extends Plugin {
@@ -445,14 +446,16 @@ export default class TVTrackerPlugin extends Plugin {
 			if (type !== 'Series' || !tmdbId) {
 				continue;
 			}
-	
+
+			
 			const response = await requestUrl({
 				url: `https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${this.settings.apiKey}&append_to_response=last_episode_to_air`,
+				method: 'GET',
 			});
 	
 			if (response.status !== 200) {
 				errorCount++;
-				console.error("BAd response from TMDB", file.path)
+				console.error("Bad response from TMDB", file.path)
 				continue;
 			}
 	
@@ -509,6 +512,98 @@ export default class TVTrackerPlugin extends Plugin {
 		}
 	
 		updateFilesNotice.setMessage(`Processing Complete. New properties added for ${successCount} files. ${errorCount} files encountered errors.`);
+		setTimeout(() => updateFilesNotice.hide(), 3000);
+	}
+
+	async updateAvailableOn() {
+		const movieFolder = this.app.vault.getAbstractFileByPath(this.settings.movieFolderPath);
+		if (!movieFolder || !(movieFolder as any).children) return;
+
+		const files = (movieFolder as any).children.filter((file: any) => file.extension === 'md');
+		// Take only first 5 files
+		//const filesToProcess = files.slice(0, 20);
+		const filesToProcess = files;
+		
+		let successCount = 0;
+		let errorCount = 0;
+		const updateFilesNotice = new Notice(`Processed files: ${successCount}/${filesToProcess.length}\n Errors: ${errorCount}`, 0);
+		const escapeDoubleQuotes = (str: string) => str.replace(/"/g, '\\"');
+
+		for (const file of filesToProcess) {
+			try {
+				//console.log("Processing file:", file.path);
+				const cache = this.app.metadataCache.getFileCache(file);
+				const yaml = cache?.frontmatter;
+
+				if (!yaml) {
+					errorCount++;
+					console.error("YAML front matter not found in file:", file.path);
+					continue;
+				}
+
+				const tmdbId = yaml["TMDB ID"];
+				const type = yaml.Type;
+
+				if (!tmdbId) {
+					console.log("Skipping file - no TMDB ID found:", file.path);
+					continue;
+				}
+
+				const endpoint = type === 'Movie' ? 'movie' : 'tv';
+				let response;
+				try {
+					response = await requestUrl({
+						url: `https://api.themoviedb.org/3/${endpoint}/${tmdbId}/watch/providers?api_key=${this.settings.apiKey}`,
+					});
+				} catch (error) {
+					console.error(`API call failed for file ${file.path}:`, error);
+					errorCount++;
+					continue;
+				}
+				
+				if (response.status !== 200) {
+					console.error(`Bad response from TMDB for file ${file.path}. Status: ${response.status}`);
+					errorCount++;
+					continue;
+				}
+
+				const data = response.json;
+				const countryCode = this.settings.countryAvailableOn;
+				const providers = data.results[countryCode]?.flatrate || [];
+
+				const providerNames = providers.map((provider: any) => provider.provider_name).join(', ');
+				
+				let updatedYaml = {
+					...yaml,
+					"Available On": providerNames ? `"${escapeDoubleQuotes(providerNames)}"` : '""'
+				};
+
+				const updatedYamlContent = `---\n${Object.entries(updatedYaml).map(([key, value]) => {
+					const escapedValue = typeof value === 'string' ? `"${escapeDoubleQuotes(value)}"` : value;
+					return `${key}: ${escapedValue}`;
+				}).join('\n')}\n---`;
+
+				const fileContent = await this.app.vault.read(file);
+				const yamlRegex = /^---[\r\n]+[\s\S]*?[\r\n]+---/m;
+
+				if (yamlRegex.test(fileContent)) {
+					const updatedFileContent = fileContent.replace(yamlRegex, updatedYamlContent);
+					await this.app.vault.modify(file, updatedFileContent);
+					successCount++;
+					console.log("Successfully updated file:", file.path);
+				} else {
+					console.error("YAML front matter not found in file:", file.path);
+					errorCount++;
+				}
+			} catch (error) {
+				console.error(`Error processing file ${file.path}:`, error);
+				errorCount++;
+			}
+
+			updateFilesNotice.setMessage(`Processed files: ${successCount}/${filesToProcess.length}\n Errors: ${errorCount}`);
+		}
+
+		updateFilesNotice.setMessage(`Processing Complete. Streaming availability updated for ${successCount} files. ${errorCount} files encountered errors. Please see console for more details on the errors.`);
 		setTimeout(() => updateFilesNotice.hide(), 3000);
 	}
 	
@@ -617,6 +712,16 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 				await this.plugin.saveSettings();
 			}));
 
+			new Setting(containerEl)
+			.setName('Country for Available On')
+			.setDesc('Select the country to show streaming availability for')
+			.addDropdown(dropdown => dropdown
+				.addOptions(TMDB_COUNTRIES)
+				.setValue(this.plugin.settings.countryAvailableOn)
+				.onChange(async (value) => {
+					this.plugin.settings.countryAvailableOn = value;
+					await this.plugin.saveSettings();
+				}));
 	
 			new Setting(containerEl)
             .setName('Show Trailer and Poster Links')
@@ -742,6 +847,15 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 				this.plugin.updateEPTracking();
 			}));
 
+		new Setting(containerEl)
+		.setName('Update Streaming Availability')
+		.setDesc('Fetches and updates streaming availability information for the selected country from TMDB API.')
+		.addButton(button => button
+			.setButtonText('Update')
+			.setCta()
+			.onClick(() => {
+				this.plugin.updateAvailableOn();
+			}));
 
 		new Setting(containerEl)
 		.setName('Update Files with new data')
@@ -872,6 +986,8 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 						text.setValue(String(numColumns)); 
 						await this.plugin.saveSettings();
 					}));
+
+		
 
 	}
 
@@ -1013,15 +1129,6 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 				await this.plugin.saveSettings();
 			}));
 
-			// new Setting(containerEl)
-			// .setName('Maximum number of movies from a single collection allowed ')
-			// .setDesc('Maximum number of movies from a single collection that will count towards minimum number of movies for avg rating metrics')
-			// .addText(text => text
-			// 	.setValue(String(this.plugin.settings.maxMoviesFromCollection))
-			// 	.onChange(async (value) => {
-			// 		this.plugin.settings.maxMoviesFromCollection = Number(value);
-			// 		await this.plugin.saveSettings();
-			// 	}));
 
 			new Setting(containerEl)
 			.setName('Minimum number of movies for metric - Director and Production company ')
