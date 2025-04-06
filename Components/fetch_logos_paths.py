@@ -7,7 +7,7 @@ def fetch_provider_logos():
     
     # Headers for the API request
     headers = {
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI3MWQ0YjVlMmQ2YjczOTJlMWRmZTYxODU1NzZiOTc2NCIsIm5iZiI6MTcwNDMwMDUxOS4xNzEsInN1YiI6IjY1OTU4ZmU3YTY5OGNmMTdmZDQzYTEyZiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Gf074jyTX8mhVrXvjkIASX6EMo0DNIerO0zNzELTc_M ',
+        'Authorization': 'Bearer ',
         'accept': 'application/json'
     }
     

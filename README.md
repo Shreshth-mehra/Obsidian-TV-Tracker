@@ -15,7 +15,7 @@ Movie and TV show tracker plugin for Obsidian
 - Added Country specific availability on streaming services
 - Added Metrics for different OTT providers
 
-Please "Available on" section below for further information
+Please see "Available on" section below for further information
 
 I work on this in my spare time. If you enjoy using this, please say Thank you or
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/shreshthmehra)
