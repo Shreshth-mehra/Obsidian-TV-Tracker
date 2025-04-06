@@ -10,6 +10,9 @@ Movie and TV show tracker plugin for Obsidian
 
 ![Add new](https://raw.githubusercontent.com/Shreshth-mehra/Obsidian-TV-Tracker/main/Showcase/addnew2.gif)
 
+# New in v1.3.11
+- Added Search filter option for OTT providers. Simply type the OTT in the search bar.
+- Fixed a bug where movies with special characters in their name couldn't be added 
 
 # New in v1.3.9
 - Added Country specific availability on streaming services
@@ -91,6 +94,11 @@ Ranks in your library - To reduce processsing these are only computed and saved 
 
 The plugin was designed for high customization and hence has multiple configurable settings. The two most improtant ones are the TMDB API key and the Folder path. The folder path is relative to the root of your obsidian vault (where the .obsidian folder is). So, if the content is in a folder called Movies which is in the root, then the path would simply be 'Movies'
 
+## Search and Filters
+The filters are self explanatory. As for the search, it shows all results where the entered search term is found in any of Title, Cast, Directors, Production Company, Collection, Year or Available On.
+
+If the Search returns 0 results then all Titles will be displayed
+
 ### Updating Files
 
 As of version 1.3.0 options to update previously existing files has been added. I have tested the plugin on multiple test cases but please keep a backup of your library before proceeding. If any errors occur, please create an issue on Github and I will work towards solving it as soon as possible.
@@ -100,9 +108,8 @@ As of version 1.3.0 options to update previously existing files has been added. 
 1. When entering a movie in the watchlist. Please enter the rating as 1 or higher otherwise the movie will not be displayed
 2. After adding a title, the TV tracker will have to be reloaded for the title to show up.
 3. If the movie has a special character in it's name such as '!' , ':' , '?' or '&' . Please remove the special character from the markdown file name after creating it through Add new.
-4. If there are no results to show for a search then all titles will be displayed but the Showing results will read 0
-5. If the entire library is large and cache was recently cleared or does not exist yet then incorrect Poster paths might be displayed for a while. Please be patient as it will eventually resolve itself.
-6. If you change the theme in your vault from Light ot Dark or the other way around. Please turn the plugin off and then turn it on again for necessary changes to reflect.
+4. If the entire library is large and cache was recently cleared or does not exist yet then incorrect Poster paths might be displayed for a while. Please be patient as it will eventually resolve itself.
+5. If you change the theme in your vault from Light ot Dark or the other way around. Please turn the plugin off and then turn it on again for necessary changes to reflect.
 
 # Attribution
 

@@ -24,10 +24,10 @@ export class TVTracker extends ItemView {
     }
 
     createMarkdownFile = async (filename, content) => {
-
-        const filePath = `/${this.plugin.settings.movieFolderPath}/${filename}.md`;
+        // Remove invalid characters from filename
+        const sanitizedFilename = filename.replace(/[*"\\/<>:|?]/g, '');
+        const filePath = `/${this.plugin.settings.movieFolderPath}/${sanitizedFilename}.md`;
         await this.app.vault.create(filePath, content);
-
     }
 
     async onOpen() {

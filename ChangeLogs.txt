@@ -1,0 +1,56 @@
+# New in v1.3.8
+
+- Added New method for Rating Actors - Blockbuster count
+- Added a command for adding series Episodes as a checklist
+
+# New in v1.3.7
+- Customizable title for the view page
+
+# New in v1.3.6
+
+-   Added property for release date to Movies (Use the Update button in settings to add this)
+-   Metrics for Top Years of Movies by count, Simple rating and avg rating
+-   Search by Movie year
+-   Setting for default sorting mode
+
+# New in v1.3.5
+
+-   Click to View Info
+    -   Clicking on a Actor or director in the metrics shows a popup with Photo of the person, total movies, upcoming movies, known for movies, age and ranks in your library
+    -   Can be turned off from settings
+-   Added fields for Total episodes, episode runtime, total seasons and episodes seen for TV Series
+    -   Update existing files from settings
+    -   Additional setting for viewing the episodes seen on Series
+    -   Added total viewing time for TV series (Depends on episodes_seen YAML property)
+-   Added a combined score rating mode
+    -   Only works for Actors (for now)
+-   Added ability to Search by collection name
+-   Added metrics for viewing total Unique Actors and Directors
+
+# New in v1.3.4 (from 1.2.0)
+
+-   Added more properties ( You can update the existing files from the settings)
+
+1. Overview
+2. Trailer link
+3. Original Language
+4. Production Company
+5. Belongs to Collection
+6. Budget
+7. Revenue
+
+-   More Metrics
+
+1. Top Production Companies
+2. Top Collections
+3. Budget Metrics
+   a. Highest and Lowest Revenue
+   b. Highest and Lowest Budget
+   c. Under and Over Performer (Ratio of Revenue to Budget)
+
+-   Added Clear all filters button
+-   Added Language filters
+-   Set default language filters in settings
+-   Set default properties to show in settings
+-   Can search using Production companies now
+-   Improved Error handling and Notices
