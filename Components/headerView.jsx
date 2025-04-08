@@ -14,11 +14,12 @@ import SortFilter from './sortFilter';
 import AddNew from './addNew';
 import MovieTypeFilter from './typeFilter';
 import MovieSelectPopUp from './movieSelectPopUp';
+import ProviderFilter from './providerFilter';
 import { Platform, requestUrl, Notice } from "obsidian";
 
 
 
-const Header = ({ showTrailerAndPosterLinks, movieProperties, handleClearAllFilters, selectedProperties, handlePropertyChange, selectedRating, handleRatingChange, genres, selectedGenres, handleGenreChange, selectedTypes, handleTypeChange, createMarkdownFile, availableLanguages, handleSortChange, sortOption, sortOrder, toggleSortOrder, themeMode, plugin, selectedLanguages, handleLanguageChange }) => {
+const Header = ({ showTrailerAndPosterLinks, movieProperties, handleClearAllFilters, selectedProperties, handlePropertyChange, selectedRating, handleRatingChange, genres, selectedGenres, handleGenreChange, selectedTypes, handleTypeChange, createMarkdownFile, availableLanguages, handleSortChange, sortOption, sortOrder, toggleSortOrder, themeMode, plugin, selectedLanguages, handleLanguageChange, selectedProviders, handleProviderChange, availableProviders }) => {
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -284,6 +285,15 @@ ${isTvShow ? '' : `release_date: ${releaseDate}`}
           handleTypeChange={handleTypeChange}
         />
       </Box>
+
+      <Box mb={2}>
+        <ProviderFilter
+          providers={availableProviders}
+          selectedProviders={selectedProviders}
+          handleProviderChange={handleProviderChange}
+        />
+      </Box>
+
       <Box mb={2}>
         <Button variant="contained" onClick={handleClearAllFilters} style={{
           color: 'inherit', maxWidth: '100px', height: 'auto',

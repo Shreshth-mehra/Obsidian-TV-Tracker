@@ -10,6 +10,9 @@ Movie and TV show tracker plugin for Obsidian
 
 ![Add new](https://raw.githubusercontent.com/Shreshth-mehra/Obsidian-TV-Tracker/main/Showcase/addnew2.gif)
 
+# new in v1.3.12
+- Added the filtering option OTT Providers  
+
 # New in v1.3.11
 - Added Search filter option for OTT providers. Simply type the OTT in the search bar.
 - Fixed a bug where movies with special characters in their name couldn't be added 

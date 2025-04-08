@@ -69,6 +69,8 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
   const [sortOrder, setSortOrder] = useState('descending');
   const [showDiscoverPopup, setShowDiscoverPopup] = useState(false);
   const [selectedLanguages, setSelectedLanguages] = useState(defaultLanguages);
+  const [selectedProviders, setSelectedProviders] = useState([]);
+  const [availableProviders, setAvailableProviders] = useState([]);
   const [debugInfo, setDebugInfo] = useState('Should not be this');
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -88,6 +90,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
     setSelectedRating(1);
     setShowWatchlist(false);
     setSelectedLanguages([]); // Set this to default selected languages from settings instead
+    setSelectedProviders([]); // Clear provider filter
   };
 
   const handleGenreChange = (event) => {
@@ -109,6 +112,13 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
       target: { value },
     } = event;
     setSelectedTypes(typeof value === 'string' ? value.split(',') : value);
+  };
+
+  const handleProviderChange = (event) => {
+    const {
+      target: { value },
+    } = event;
+    setSelectedProviders(typeof value === 'string' ? value.split(',') : value);
   };
 
   const sortMovies = (movies) => {
@@ -155,10 +165,21 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
       Object.keys(movie).forEach(key => propertiesSet.add(key));
     });
     setMovieProperties(Array.from(propertiesSet));
+    
+    // Extract available providers from movies
+    const providersSet = new Set();
+    movies.forEach(movie => {
+      if (movie['Available On']) {
+        const providers = movie['Available On'].split(', ');
+        providers.forEach(provider => providersSet.add(provider));
+      }
+    });
+    setAvailableProviders(Array.from(providersSet));
+    
     // parseAndSetSelectedLanguages();
     applyFilters();
 
-  }, [movies, selectedGenres, selectedTypes, selectedRating, debouncedSearchTerm, sortOption, showWatchlist, sortOrder, selectedLanguages]);
+  }, [movies, selectedGenres, selectedTypes, selectedRating, debouncedSearchTerm, sortOption, showWatchlist, sortOrder, selectedLanguages, selectedProviders]);
 
 
 
@@ -211,7 +232,16 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
         const matchesRating = movie.Rating >= selectedRating;
         const matchesWatchlist = !showWatchlist || movie.Status === 'Watchlist';
         const matchesLanguage = selectedLanguages.length === 0 || selectedLanguages.includes(movie.original_language);
-        return matchesGenre && matchesType && matchesRating && matchesLanguage && (matchesTitle || matchesCast || matchesDirector || matchesProductionComapny || matchesCollection || matchesYear || matchesAvailableOn) && matchesWatchlist;
+        
+        // Add provider filter
+        const matchesProvider = selectedProviders.length === 0 || 
+          (movie['Available On'] && selectedProviders.some(provider => 
+            movie['Available On'].split(', ').includes(provider)
+          ));
+        
+        return matchesGenre && matchesType && matchesRating && matchesLanguage && matchesProvider && 
+          (matchesTitle || matchesCast || matchesDirector || matchesProductionComapny || matchesCollection || matchesYear || matchesAvailableOn) && 
+          matchesWatchlist;
       } catch (error) {
         new Notice(`Error processing movie ${movie.Title}. Showing rest of the results. Please console for detailed error`);
         console.error(`Error processing movie ${movie.Title}: ${error.message}`);
@@ -258,6 +288,9 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
         handleLanguageChange={handleLanguageChange}
         selectedLanguages={selectedLanguages}
         availableLanguages={availableLanguages}
+        selectedProviders={selectedProviders}
+        handleProviderChange={handleProviderChange}
+        availableProviders={availableProviders}
       />
       <Box style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <TextField
