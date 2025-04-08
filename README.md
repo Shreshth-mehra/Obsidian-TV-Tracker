@@ -10,6 +10,9 @@ Movie and TV show tracker plugin for Obsidian
 
 ![Add new](https://raw.githubusercontent.com/Shreshth-mehra/Obsidian-TV-Tracker/main/Showcase/addnew2.gif)
 
+# new in v1.3.13
+- Don't have to refresh the plugin to see newly added titles. The plugin will now automatically fetch the newly added or edited files.
+
 # new in v1.3.12
 - Added the filtering option OTT Providers  
 
