@@ -246,8 +246,9 @@ export const ReactView = forwardRef(({ moviesData, createMarkdownFile, themeMode
         
         // Add provider filter
         const matchesProvider = selectedProviders.length === 0 || 
+          (selectedProviders.includes('No Provider') && (!movie['Available On'] || movie['Available On'].trim() === '')) ||
           (movie['Available On'] && selectedProviders.some(provider => 
-            movie['Available On'].split(', ').includes(provider)
+            provider !== 'No Provider' && movie['Available On'].split(', ').includes(provider)
           ));
         
         return matchesGenre && matchesType && matchesRating && matchesLanguage && matchesProvider && 

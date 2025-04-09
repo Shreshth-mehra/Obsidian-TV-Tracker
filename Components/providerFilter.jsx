@@ -13,18 +13,24 @@ const ProviderFilter = ({ providers, selectedProviders, handleProviderChange }) 
         input={<OutlinedInput label="Providers" />}
         renderValue={(selected) => (
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-            {selected.map((provider) => (
-              <img
-                key={provider}
-                src={providerLogos[provider] || ''}
-                alt={provider}
-                style={{
-                  height: '20px',
-                  width: '20px',
-                  objectFit: 'contain',
-                  marginRight: '4px'
-                }}
-              />
+            {selected.map((provider, index) => (
+              <React.Fragment key={provider}>
+                {provider === 'No Provider' ? (
+                  <span style={{ fontSize: '12px' }}>No Provider</span>
+                ) : (
+                  <img
+                    src={providerLogos[provider] || ''}
+                    alt={provider}
+                    style={{
+                      height: '20px',
+                      width: '20px',
+                      objectFit: 'contain',
+                      marginRight: '4px'
+                    }}
+                  />
+                )}
+                {index < selected.length - 1 && <span style={{ marginRight: '4px' }}>,</span>}
+              </React.Fragment>
             ))}
           </Box>
         )}
@@ -51,6 +57,11 @@ const ProviderFilter = ({ providers, selectedProviders, handleProviderChange }) 
           '& .MuiSvgIcon-root': { color: 'inherit' },
         }}
       >
+        <MenuItem key="No Provider" value="No Provider" sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Checkbox checked={selectedProviders.indexOf('No Provider') > -1} />
+          <span style={{ marginLeft: '8px' }}>No Provider</span>
+        </MenuItem>
+        
         {providers.map((provider) => (
           <MenuItem key={provider} value={provider} sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Checkbox checked={selectedProviders.indexOf(provider) > -1} />
