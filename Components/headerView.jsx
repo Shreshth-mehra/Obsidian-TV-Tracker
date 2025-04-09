@@ -188,7 +188,7 @@ ${isTvShow ? '' : `release_date: ${releaseDate}`}
       const title = detailsData.title || detailsData.name; // TV shows use 'name' instead of 'title'
       const fileName = `${title.replace(/[\/\\:]/g, '_')}`; // Sanitize title for filename
       await createMarkdownFile(fileName, content);
-      new Notice('Successfully added. Please restart plugin to view it in the library');
+      new Notice('Successfully added');
     } catch (error) {
       new Notice('Error: Could not add movie');
       console.error('Error processing the selected movie:', error);
