@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import MovieGrid from "./Components/GridView";
 import { Container, Typography, Box, Collapse, Button } from "@mui/material";
 import Header from './Components/headerView';
@@ -12,7 +12,6 @@ import Metrics from './Components/metricsView';
 import { Platform, Notice } from "obsidian";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DiscoverPopup from './Components/discoverView'
-import { SolarPower } from "@mui/icons-material";
 
 function useDebounce(value, delay) {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -27,9 +26,6 @@ function useDebounce(value, delay) {
 
   return debouncedValue;
 }
-
-
-
 
 const genreList = [
   { "id": 28, "name": "Action" },
@@ -53,9 +49,9 @@ const genreList = [
   { "id": 37, "name": "Western" }
 ];
 
-export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, defaultLanguages, defaultProperties }) => {
+export const ReactView = forwardRef(({ moviesData, createMarkdownFile, themeMode, plugin, defaultLanguages, defaultProperties }, ref) => {
   // Change movie state to movies, which will be an array
-  const [movies, setMovies] = useState([moviesData || []]);
+  const [movies, setMovies] = useState(moviesData || []);
   const [filteredMovies, setFilteredMovies] = useState([]);
   const [selectedRating, setSelectedRating] = useState(0);
   const [selectedProperties, setSelectedProperties] = useState(defaultProperties);
@@ -71,7 +67,6 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
   const [selectedLanguages, setSelectedLanguages] = useState(defaultLanguages);
   const [selectedProviders, setSelectedProviders] = useState([]);
   const [availableProviders, setAvailableProviders] = useState([]);
-  const [debugInfo, setDebugInfo] = useState('Should not be this');
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
@@ -79,7 +74,6 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
   const availableLanguages = Array.from(new Set(movies.map(movie => movie.original_language)));
 
   const openDiscoverPopup = () => setShowDiscoverPopup(true);
-
 
   const closeDiscoverPopup = () => setShowDiscoverPopup(false);
 
@@ -152,16 +146,42 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
     setSortOrder(sortOrder === 'ascending' ? 'descending' : 'ascending');
   };
 
-
-  // }, []);
+  useImperativeHandle(ref, () => ({
+    updateMoviesData: (newMoviesData) => {
+      console.log("ReactView: Updating movies data, count:", newMoviesData.length);
+      
+      // Update the movies state
+      setMovies(newMoviesData);
+      
+      // Update available providers
+      const newProvidersSet = new Set();
+      newMoviesData.forEach(movie => {
+        if (movie['Available On']) {
+          const providers = movie['Available On'].replace(/"/g, '').split(', ');
+          providers.forEach(provider => newProvidersSet.add(provider));
+        }
+      });
+      //console.log("ReactView: New providers set:", newProvidersSet);
+      setAvailableProviders(Array.from(newProvidersSet));
+      
+      // Update movie properties
+      const propertiesSet = new Set();
+      newMoviesData.forEach(movie => {
+        Object.keys(movie).forEach(key => propertiesSet.add(key));
+      });
+      setMovieProperties(Array.from(propertiesSet));
+      
+      // Apply filters with the new data
+      applyFilters(newMoviesData);
+      
+      console.log("ReactView: Movies data updated successfully");
+    }
+  }));
 
   useEffect(() => {
-
     const propertiesSet = new Set();
 
-    setMovies(moviesData);
     movies.forEach(movie => {
-
       Object.keys(movie).forEach(key => propertiesSet.add(key));
     });
     setMovieProperties(Array.from(propertiesSet));
@@ -170,18 +190,14 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
     const providersSet = new Set();
     movies.forEach(movie => {
       if (movie['Available On']) {
-        const providers = movie['Available On'].split(', ');
+        const providers = movie['Available On'].replace(/"/g, '').split(', ');
         providers.forEach(provider => providersSet.add(provider));
       }
     });
     setAvailableProviders(Array.from(providersSet));
     
-    // parseAndSetSelectedLanguages();
     applyFilters();
-
   }, [movies, selectedGenres, selectedTypes, selectedRating, debouncedSearchTerm, sortOption, showWatchlist, sortOrder, selectedLanguages, selectedProviders]);
-
-
 
   const handlePropertyChange = (event) => {
     const {
@@ -189,7 +205,6 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
     } = event;
     setSelectedProperties(typeof value === 'string' ? value.split(',') : value);
   };
-
 
   const handleRatingChange = (event) => {
     const rating = event.target.value;
@@ -205,13 +220,10 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
     setLegendOpen(!legendOpen);
   };
 
-
-  const applyFilters = () => {
-
+  const applyFilters = (moviesToFilter = movies) => {
     const lowerCaseSearchTerm = debouncedSearchTerm.toLowerCase();
 
-
-    const filtered = movies.filter(movie => {
+    const filtered = moviesToFilter.filter(movie => {
       try {
         const matchesTitle = movie.Title && movie.Title.toString().toLowerCase().includes(lowerCaseSearchTerm);
         const matchesCollection = movie.belongs_to_collection && movie.belongs_to_collection.toString().toLowerCase().includes(lowerCaseSearchTerm);
@@ -235,8 +247,9 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
         
         // Add provider filter
         const matchesProvider = selectedProviders.length === 0 || 
+          (selectedProviders.includes('No Provider') && (!movie['Available On'] || movie['Available On'].trim() === '')) ||
           (movie['Available On'] && selectedProviders.some(provider => 
-            movie['Available On'].split(', ').includes(provider)
+            provider !== 'No Provider' && movie['Available On'].split(', ').includes(provider)
           ));
         
         return matchesGenre && matchesType && matchesRating && matchesLanguage && matchesProvider && 
@@ -253,11 +266,7 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
     setFilteredMovies(sortedMovies);
   };
 
-
-
-
   const languageFilteredMovies = movies.filter(movie => selectedLanguages.length === 0 || selectedLanguages.includes(movie.original_language));
-
 
   // Render each movie in the grid
   return (
@@ -327,7 +336,6 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
             }
           }}
         />
-
 
         <FormControlLabel
           control={
@@ -402,4 +410,4 @@ export const ReactView = ({ moviesData, createMarkdownFile, themeMode, plugin, d
       <MovieGrid movies={filteredMovies.length > 0 ? filteredMovies : movies} selectedProperties={selectedProperties} numberOfColumns={plugin.settings.numberOfColumns} toggleFittedImage={plugin.settings.toggleFittedImages} movieCardColor={plugin.settings.movieCardColor} plugin={plugin} />
     </Container>
   );
-};
+});

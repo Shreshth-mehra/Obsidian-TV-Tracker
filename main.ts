@@ -1,4 +1,4 @@
-import { App, Plugin, PluginSettingTab, Setting, Notice, requestUrl, TFile} from 'obsidian';
+import { App, Plugin, PluginSettingTab, Setting, Notice, requestUrl, TFile, TFolder } from 'obsidian';
 import { TVTracker,VIEW_TV } from 'view';
 import { TMDB_COUNTRIES } from './countries';
 
@@ -88,6 +88,9 @@ const DEFAULT_TV_SETTINGS: TVTrackerSettings = {
 export default class TVTrackerPlugin extends Plugin {
 	settings: TVTrackerSettings;
 	systemThemeMode: string;
+	activeViews: Set<TVTracker> = new Set();
+	refreshTimeout: NodeJS.Timeout | null = null;
+	fileWatcherRegistered = false;
 
 	async onload() {
 		await this.loadSettings();
@@ -98,7 +101,12 @@ export default class TVTrackerPlugin extends Plugin {
 			this.systemThemeMode = 'dark';
 		}
 
-		this.registerView(VIEW_TV, (leaf) => new TVTracker(leaf,this, this.systemThemeMode));
+		this.registerView(VIEW_TV, (leaf) => {
+			const view = new TVTracker(leaf, this, this.systemThemeMode);
+			this.activeViews.add(view);
+			return view;
+		});
+
 		this.addRibbonIcon('star','Open TV Tracker', ()=>  {
 			this.activateView();
 	
@@ -120,9 +128,15 @@ export default class TVTrackerPlugin extends Plugin {
 			}
 		});
 
+		// Register for file changes in the movie folder
+		this.registerFileWatcher();
 	}
 	onunload() {
-
+		// Clean up the file watcher when the plugin is unloaded
+		this.activeViews.clear();
+		if (this.refreshTimeout) {
+			clearTimeout(this.refreshTimeout);
+		}
 	}
 
 	async openView() {
@@ -662,6 +676,98 @@ export default class TVTrackerPlugin extends Plugin {
 		}
 	}
 
+	// Method to register a view for updates
+	registerViewForUpdates(view: TVTracker) {
+		this.activeViews.add(view);
+	}
+	
+	// Method to unregister a view
+	unregisterView(view: TVTracker) {
+		this.activeViews.delete(view);
+	}
+	
+	// Method to refresh all active views
+	async refreshAllViews() {
+		// Debounce the refresh to avoid multiple rapid refreshes
+		if (this.refreshTimeout) {
+			clearTimeout(this.refreshTimeout);
+		}
+		
+		this.refreshTimeout = setTimeout(async () => {
+			console.log("Refreshing all views, active views count:", this.activeViews.size);
+			for (const view of this.activeViews) {
+				await view.refreshData();
+			}
+		}, 500); // 500ms debounce
+	}
+	
+	// Register for file changes in the movie folder
+	registerFileWatcher() {
+		if (this.fileWatcherRegistered) return;
+		
+		// Register for file changes in the movie folder
+		this.registerEvent(
+			this.app.vault.on('modify', async (file) => {
+				if (file instanceof TFile && 
+					file.path.startsWith(this.settings.movieFolderPath) && 
+					file.extension === 'md') {
+					console.log("File modified:", file.path);
+					await this.refreshAllViews();
+				}
+			})
+		);
+		
+		// Register for file creation in the movie folder
+		this.registerEvent(
+			this.app.vault.on('create', async (file) => {
+				if (file instanceof TFile && 
+					file.path.startsWith(this.settings.movieFolderPath) && 
+					file.extension === 'md') {
+					console.log("File created:", file.path);
+					await this.refreshAllViews();
+				}
+			})
+		);
+		
+		// Register for file deletion in the movie folder
+		this.registerEvent(
+			this.app.vault.on('delete', async (file) => {
+				if (file instanceof TFile && 
+					file.path.startsWith(this.settings.movieFolderPath) && 
+					file.extension === 'md') {
+					console.log("File deleted:", file.path);
+					await this.refreshAllViews();
+				}
+			})
+		);
+		
+		this.fileWatcherRegistered = true;
+	}
+	
+	// Method to get the current movie data
+	async getMovieData(): Promise<any[]> {
+		const folder = this.app.vault.getAbstractFileByPath(this.settings.movieFolderPath);
+		const moviesData = [];
+		
+		if (folder instanceof TFolder) {
+			// Iterate through the children of the folder
+			for (const file of folder.children) {
+				// Ensure the file is a markdown file
+				if (file instanceof TFile && file.extension === 'md') {
+					const cache = this.app.metadataCache.getFileCache(file);
+					if (cache?.frontmatter && cache.frontmatter["TMDB ID"]) {
+						const movieInfo = {
+							...cache.frontmatter,
+							filePath: file.path
+						};
+						moviesData.push(movieInfo);
+					}
+				}
+			}
+		}
+		
+		return moviesData;
+	}
 
 }
 
