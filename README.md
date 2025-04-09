@@ -10,13 +10,18 @@ Movie and TV show tracker plugin for Obsidian
 
 ![Add new](https://raw.githubusercontent.com/Shreshth-mehra/Obsidian-TV-Tracker/main/Showcase/addnew2.gif)
 
+# New in v1.3.15
+Small bug fix
+- Removed the double quotes from the Available on Property.
+Please update all files using the Update button for fetching OTT provider information. 
+
 # New in v1.3.14
 - Added an option to select the "**No Provider**" in the providers filtering option
 
-# new in v1.3.13
+# New in v1.3.13
 - Don't have to refresh the plugin to see newly added titles. The plugin will now automatically fetch the newly added or edited files.
 
-# new in v1.3.12
+# New in v1.3.12
 - Added the filtering option OTT Providers  
 
 # New in v1.3.11
