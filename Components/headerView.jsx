@@ -166,7 +166,7 @@ budget: ${budget}
 revenue: ${revenue}
 belongs_to_collection: ${belongsToCollection ? `"${belongsToCollection}"` : '""'}
 production_company: "${productionCompanies}"
-Available On: "${escapeDoubleQuotes(providerNames)}"
+Available On: ${providerNames}
 ${isTvShow ? `total_episodes: ${totalEpisodes}` : ''}
 ${isTvShow ? `total_seasons: ${totalSeasons}` : ''}
 ${isTvShow ? `episode_runtime: ${episode_runtime}` : ''}

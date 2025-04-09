@@ -157,7 +157,7 @@ export const ReactView = forwardRef(({ moviesData, createMarkdownFile, themeMode
       const newProvidersSet = new Set();
       newMoviesData.forEach(movie => {
         if (movie['Available On']) {
-          const providers = movie['Available On'].replace(/"/g, '').split(', ');
+          const providers = movie['Available On'].split(', ');
           providers.forEach(provider => newProvidersSet.add(provider));
         }
       });
@@ -190,7 +190,7 @@ export const ReactView = forwardRef(({ moviesData, createMarkdownFile, themeMode
     const providersSet = new Set();
     movies.forEach(movie => {
       if (movie['Available On']) {
-        const providers = movie['Available On'].replace(/"/g, '').split(', ');
+        const providers = movie['Available On'].split(', ');
         providers.forEach(provider => providersSet.add(provider));
       }
     });

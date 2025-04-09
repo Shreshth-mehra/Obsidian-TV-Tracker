@@ -268,7 +268,7 @@ const Metrics = ({
         // Process OTT providers
         if (movie['Available On'] && movie['Available On'].trim() !== '') {
           // Remove double quotes and split by comma
-          const ottString = movie['Available On'].replace(/"/g, '').trim();
+          const ottString = movie['Available On'].trim();
           if (ottString !== '') {
             const ottProviders = ottString.split(',').map(provider => provider.trim());
             

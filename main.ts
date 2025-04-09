@@ -589,7 +589,7 @@ export default class TVTrackerPlugin extends Plugin {
 				
 				let updatedYaml = {
 					...yaml,
-					"Available On": providerNames ? `"${escapeDoubleQuotes(providerNames)}"` : '""'
+					"Available On": providerNames || ''
 				};
 
 				const updatedYamlContent = `---\n${Object.entries(updatedYaml).map(([key, value]) => {
