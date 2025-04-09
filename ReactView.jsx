@@ -157,10 +157,11 @@ export const ReactView = forwardRef(({ moviesData, createMarkdownFile, themeMode
       const newProvidersSet = new Set();
       newMoviesData.forEach(movie => {
         if (movie['Available On']) {
-          const providers = movie['Available On'].split(', ');
+          const providers = movie['Available On'].replace(/"/g, '').split(', ');
           providers.forEach(provider => newProvidersSet.add(provider));
         }
       });
+      //console.log("ReactView: New providers set:", newProvidersSet);
       setAvailableProviders(Array.from(newProvidersSet));
       
       // Update movie properties
@@ -189,7 +190,7 @@ export const ReactView = forwardRef(({ moviesData, createMarkdownFile, themeMode
     const providersSet = new Set();
     movies.forEach(movie => {
       if (movie['Available On']) {
-        const providers = movie['Available On'].split(', ');
+        const providers = movie['Available On'].replace(/"/g, '').split(', ');
         providers.forEach(provider => providersSet.add(provider));
       }
     });
