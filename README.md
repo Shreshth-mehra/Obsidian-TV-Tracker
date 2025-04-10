@@ -10,6 +10,17 @@ Movie and TV show tracker plugin for Obsidian
 
 ![Add new](https://raw.githubusercontent.com/Shreshth-mehra/Obsidian-TV-Tracker/main/Showcase/addnew2.gif)
 
+# New in v1.3.16
+-  Added an Direct Obsidian Command for adding new titles. This will allow you to add new titles from anywhere in Obsidian. You can also assign a hotkey to this command for even faster access.
+- Added the command for this which are previously available in the settings. Will work on currently opened file.
+
+### These are commands that are available in the command palette
+- **Movie and TV show tracker: Search and add movie/TV show** - to library (User can select the item after that they can add the satus and rating)
+- **Movie and TV show tracker: Add episode list for current file** -  (Also fetch the New Season if Available & New Episodes as well)
+- **Movie and TV show tracker: Update current file with new data**
+- **Movie and TV show tracker: Update Episode tracking for current file**
+- **Movie and TV show tracker: Update Streaming availability for current file**
+
 # New in v1.3.15
 Small bug fix
 - Removed the double quotes from the Available on Property.
