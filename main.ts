@@ -1,4 +1,4 @@
-import { App, Plugin, PluginSettingTab, Setting, Notice, requestUrl, TFile, TFolder } from 'obsidian';
+import { App, Plugin, PluginSettingTab, Setting, Notice, requestUrl, TFile, TFolder, Modal } from 'obsidian';
 import { TVTracker,VIEW_TV } from 'view';
 import { TMDB_COUNTRIES } from './countries';
 
@@ -125,6 +125,56 @@ export default class TVTrackerPlugin extends Plugin {
 				}
 				console.log("Active file", activeFile);
 				this.addEpisodeListToCurrentFile(activeFile)
+			}
+		});
+
+		// Add new commands for updating current file
+		this.addCommand({
+			id: 'update-current-file-episode-tracking',
+			name: 'Update Episode tracking for current file',
+			callback: async () => {
+				const activeFile = this.app.workspace.getActiveFile();
+				if (!activeFile) {
+					new Notice('No active file found.');
+					return;
+				}
+				await this.updateEPTrackingForFile(activeFile);
+			}
+		});
+
+		this.addCommand({
+			id: 'update-current-file-streaming',
+			name: 'Update Streaming availability for current file',
+			callback: async () => {
+				const activeFile = this.app.workspace.getActiveFile();
+				if (!activeFile) {
+					new Notice('No active file found.');
+					return;
+				}
+				await this.updateAvailableOnForFile(activeFile);
+			}
+		});
+
+		this.addCommand({
+			id: 'update-current-file-data',
+			name: 'Update current file with new data',
+			callback: async () => {
+				const activeFile = this.app.workspace.getActiveFile();
+				if (!activeFile) {
+					new Notice('No active file found.');
+					return;
+				}
+				await this.updateNewPropertiesForFile(activeFile);
+			}
+		});
+
+		// Add new command for searching and adding movies/TV shows
+		this.addCommand({
+			id: 'search-and-add-movie',
+			name: 'Search and add movie/TV show',
+			callback: async () => {
+				const modal = new SearchModal(this.app, this);
+				modal.open();
 			}
 		});
 
@@ -630,11 +680,11 @@ export default class TVTrackerPlugin extends Plugin {
 	}
 
 	async addEpisodeListToCurrentFile(activeFile:TFile) {
-		console.log("Executing now");
+		console.log("Starting episode list update...");
 		
 		const fileContent = await this.app.vault.read(activeFile);
 		const frontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
-		console.log("Frontmatter", frontmatter);
+		
 		if (!frontmatter || frontmatter.Type !== 'Series') {
 			new Notice('The active file is not a Series.');
 			return;
@@ -644,7 +694,6 @@ export default class TVTrackerPlugin extends Plugin {
 			new Notice('TMDB ID is missing in the frontmatter.');
 			return;
 		}
-		console.log("TMDB ID", frontmatter["TMDB ID"]);
 
 		const tmdbId = frontmatter["TMDB ID"];
 		const apiKey = this.settings.apiKey;
@@ -654,24 +703,102 @@ export default class TVTrackerPlugin extends Plugin {
 			const response = await requestUrl({ url });
 			const data = response.json;
 			const seasons = data.seasons || [];
-			console.log("Seasons", seasons);
-			let episodeList = '\n# Episodes\n';
+			console.log(`Found ${seasons.length} seasons total from TMDB`);
+
+			// Parse existing content to find existing seasons and their episodes
+			const existingContent = new Map(); // Map<season_number, Set<episode_number>>
+			let currentSeasonContent = '';
+			let currentSeasonNum = null;
+			
+			// Split content into lines for more precise parsing
+			const lines = fileContent.split('\n');
+			for (const line of lines) {
+				const seasonMatch = line.match(/^## Season (\d+)/);
+				if (seasonMatch) {
+					// If we were processing a season, save it
+					if (currentSeasonNum !== null) {
+						existingContent.set(currentSeasonNum, currentSeasonContent);
+					}
+					currentSeasonNum = parseInt(seasonMatch[1]);
+					currentSeasonContent = line + '\n';
+					console.log(`Found existing season ${currentSeasonNum}`);
+				} else if (currentSeasonNum !== null) {
+					currentSeasonContent += line + '\n';
+				}
+			}
+			// Save the last season if exists
+			if (currentSeasonNum !== null) {
+				existingContent.set(currentSeasonNum, currentSeasonContent);
+			}
+
+			let newContent = fileContent;
+			let hasNewContent = false;
+
+			// Add episodes heading if it doesn't exist
+			if (!newContent.includes('# Episodes')) {
+				newContent = newContent + '\n# Episodes\n';
+			}
+
 			for (const season of seasons) {
 				if (season.season_number > 0) {
-					episodeList += `\n## Season ${season.season_number}\n`;
+					console.log(`Processing season ${season.season_number}`);
 					const seasonDetails = await requestUrl({
 						url: `https://api.themoviedb.org/3/tv/${tmdbId}/season/${season.season_number}?api_key=${apiKey}`
 					});
 					const seasonData = seasonDetails.json;
+					
+					// Get existing episode numbers for this season
+					const existingEpisodes = new Set();
+					const existingSeasonContent = existingContent.get(season.season_number) || '';
+					const episodeMatches = existingSeasonContent.matchAll(/Episode (\d+):/g);
+					for (const match of episodeMatches) {
+						existingEpisodes.add(parseInt(match[1]));
+					}
+					
+					console.log(`Season ${season.season_number} has ${existingEpisodes.size} existing episodes`);
+					console.log(`TMDB shows ${seasonData.episodes.length} total episodes`);
+
+					let seasonContent = '';
+					let hasNewEpisodesInSeason = false;
+
 					for (const episode of seasonData.episodes) {
-						episodeList += `- [ ] Episode ${episode.episode_number}: ${episode.name}\n`;
+						if (!existingEpisodes.has(episode.episode_number)) {
+							console.log(`Found new episode ${episode.episode_number} in season ${season.season_number}`);
+							hasNewEpisodesInSeason = true;
+							seasonContent += `- [ ] Episode ${episode.episode_number}: ${episode.name}\n`;
+						}
+					}
+
+					if (hasNewEpisodesInSeason) {
+						hasNewContent = true;
+						if (existingContent.has(season.season_number)) {
+							// Find the end of the existing season section
+							const seasonHeaderRegex = new RegExp(`## Season ${season.season_number}[^#]*`);
+							const seasonMatch = newContent.match(seasonHeaderRegex);
+							if (seasonMatch) {
+								const insertPosition = seasonMatch.index + seasonMatch[0].length;
+								newContent = newContent.slice(0, insertPosition) + seasonContent + newContent.slice(insertPosition);
+								console.log(`Added ${seasonContent.split('\n').length - 1} new episodes to existing season ${season.season_number}`);
+							}
+						} else {
+							// Add new season at the end
+							newContent += `\n## Season ${season.season_number}\n${seasonContent}`;
+							console.log(`Added new season ${season.season_number} with ${seasonContent.split('\n').length - 1} episodes`);
+						}
 					}
 				}
 			}
 
-			await this.app.vault.modify(activeFile, fileContent + episodeList);
-			new Notice('Episode list added successfully.');
+			if (hasNewContent && newContent !== fileContent) {
+				await this.app.vault.modify(activeFile, newContent);
+				new Notice('New episodes added successfully.');
+				console.log('File updated with new episodes');
+			} else {
+				new Notice('No new episodes found to add.');
+				console.log('No new episodes found to add');
+			}
 		} catch (error) {
+			console.error('Error fetching episode data:', error);
 			new Notice('Error fetching episode data.');
 		}
 	}
@@ -767,6 +894,240 @@ export default class TVTrackerPlugin extends Plugin {
 		}
 		
 		return moviesData;
+	}
+
+	// Add new methods for single file updates
+	async updateEPTrackingForFile(file: TFile) {
+		const cache = this.app.metadataCache.getFileCache(file);
+		const yaml = cache?.frontmatter;
+
+		if (!yaml) {
+			new Notice('No YAML front matter found in file.');
+			return;
+		}
+
+		const type = yaml.Type;
+		const tmdbId = yaml["TMDB ID"];
+
+		if (type !== 'Series' || !tmdbId) {
+			new Notice('File is not a Series or missing TMDB ID.');
+			return;
+		}
+
+		const response = await requestUrl({
+			url: `https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${this.settings.apiKey}&append_to_response=last_episode_to_air`,
+			method: 'GET',
+		});
+
+		if (response.status !== 200) {
+			new Notice('Error fetching data from TMDB.');
+			return;
+		}
+
+		const data = response.json;
+		const totalEpisodes = data.number_of_episodes;
+		const totalSeasons = data.number_of_seasons;
+		let episode_runtime = data.episode_run_time && data.episode_run_time.length > 0 ? data.episode_run_time[0] : null;
+
+		if (!episode_runtime && data.last_episode_to_air) {
+			episode_runtime = data.last_episode_to_air.runtime;
+		}
+
+		let updatedYaml = {};
+
+		if (!('episodes_seen' in yaml)) {
+			updatedYaml = {
+				...yaml,
+				total_episodes: totalEpisodes,
+				total_seasons: totalSeasons,
+				episode_runtime: episode_runtime,
+				episodes_seen: 0
+			};
+		} else {
+			updatedYaml = {
+				...yaml,
+				total_episodes: totalEpisodes,
+				total_seasons: totalSeasons,
+				episode_runtime: episode_runtime
+			};
+		}
+
+		const escapeDoubleQuotes = (str: string) => str.replace(/"/g, '\\"');
+		const updatedYamlContent = `---\n${Object.entries(updatedYaml).map(([key, value]) => {
+			const escapedValue = typeof value === 'string' ? `"${escapeDoubleQuotes(value)}"` : value;
+			return `${key}: ${escapedValue}`;
+		}).join('\n')}\n---`;
+
+		const fileContent = await this.app.vault.read(file);
+		const yamlRegex = /^---[\r\n]+[\s\S]*?[\r\n]+---/m;
+
+		if (yamlRegex.test(fileContent)) {
+			const updatedFileContent = fileContent.replace(yamlRegex, updatedYamlContent);
+			await this.app.vault.modify(file, updatedFileContent);
+			new Notice('Episode tracking data updated successfully.');
+		} else {
+			new Notice('YAML front matter not found in file.');
+		}
+	}
+
+	async updateAvailableOnForFile(file: TFile) {
+		const cache = this.app.metadataCache.getFileCache(file);
+		const yaml = cache?.frontmatter;
+
+		if (!yaml) {
+			new Notice('No YAML front matter found in file.');
+			return;
+		}
+
+		const tmdbId = yaml["TMDB ID"];
+		const type = yaml.Type;
+
+		if (!tmdbId) {
+			new Notice('TMDB ID not found in file.');
+			return;
+		}
+
+		const endpoint = type === 'Movie' ? 'movie' : 'tv';
+		const response = await requestUrl({
+			url: `https://api.themoviedb.org/3/${endpoint}/${tmdbId}/watch/providers?api_key=${this.settings.apiKey}`,
+		});
+
+		if (response.status !== 200) {
+			new Notice('Error fetching data from TMDB.');
+			return;
+		}
+
+		const data = response.json;
+		const countryCode = this.settings.countryAvailableOn;
+		const providers = data.results[countryCode]?.flatrate || [];
+		const providerNames = providers.map((provider: any) => provider.provider_name).join(', ');
+
+		let updatedYaml = {
+			...yaml,
+			"Available On": providerNames || ''
+		};
+
+		const escapeDoubleQuotes = (str: string) => str.replace(/"/g, '\\"');
+		const updatedYamlContent = `---\n${Object.entries(updatedYaml).map(([key, value]) => {
+			const escapedValue = typeof value === 'string' ? `"${escapeDoubleQuotes(value)}"` : value;
+			return `${key}: ${escapedValue}`;
+		}).join('\n')}\n---`;
+
+		const fileContent = await this.app.vault.read(file);
+		const yamlRegex = /^---[\r\n]+[\s\S]*?[\r\n]+---/m;
+
+		if (yamlRegex.test(fileContent)) {
+			const updatedFileContent = fileContent.replace(yamlRegex, updatedYamlContent);
+			await this.app.vault.modify(file, updatedFileContent);
+			new Notice('Streaming availability updated successfully.');
+		} else {
+			new Notice('YAML front matter not found in file.');
+		}
+	}
+
+	async updateNewPropertiesForFile(file: TFile) {
+		const cache = this.app.metadataCache.getFileCache(file);
+		const yaml = cache?.frontmatter;
+
+		if (!yaml) {
+			new Notice('No YAML front matter found in file.');
+			return;
+		}
+
+		const type = yaml.Type;
+		const tmdbId = yaml["TMDB ID"];
+
+		if (!type || !tmdbId) {
+			new Notice('Type or TMDB ID not found in file.');
+			return;
+		}
+
+		const endpoint = type === 'Movie' ? `movie` : `tv`;
+		const response = await requestUrl({
+			url: `https://api.themoviedb.org/3/${endpoint}/${tmdbId}?api_key=${this.settings.apiKey}&append_to_response=videos`,
+		});
+
+		if (response.status !== 200) {
+			new Notice('Error fetching data from TMDB.');
+			return;
+		}
+
+		const data = response.json;
+		const originalLanguage = data.original_language;
+		const overview = data.overview;
+
+		let productionCompanies = '';
+		if (data.production_companies && data.production_companies.length > 0) {
+			productionCompanies = data.production_companies.slice(0, 2).map((company: any) => company.name).join(', ');
+		}
+
+		let trailer = '';
+		if (data.videos && data.videos.results.length > 0) {
+			const trailerData = data.videos.results.find((video: any) => video.type === 'Trailer');
+			if (trailerData) {
+				trailer = `https://www.youtube.com/watch?v=${trailerData.key}`;
+			}
+		}
+
+		let budget = null;
+		let revenue = null;
+		let belongsToCollection = null;
+		let releaseDate = null;
+
+		if (type === 'Movie') {
+			budget = data.budget;
+			revenue = data.revenue;
+			belongsToCollection = data.belongs_to_collection ? data.belongs_to_collection.name : null;
+			releaseDate = data.release_date;
+		}
+
+		const escapeDoubleQuotes = (str: string) => str.replace(/"/g, '\\"');
+
+		if (yaml.Title) {
+			const title = yaml.Title;
+			if (!title.startsWith('"') || !title.endsWith('"')) {
+				yaml.Title = `"${title}"`;
+			}
+		}
+
+		let updatedYaml = {};
+		if (releaseDate) {
+			updatedYaml = {
+				...yaml,
+				original_language: `"${originalLanguage}"`,
+				overview: `"${escapeDoubleQuotes(overview)}"`,
+				trailer: `"${trailer}"`,
+				budget: budget,
+				revenue: revenue,
+				belongs_to_collection: belongsToCollection ? `"${belongsToCollection}"` : '""',
+				production_company: `"${productionCompanies}"`,
+				release_date: `"${releaseDate}"`,
+			};
+		} else {
+			updatedYaml = {
+				...yaml,
+				original_language: `"${originalLanguage}"`,
+				overview: `"${escapeDoubleQuotes(overview)}"`,
+				trailer: `"${trailer}"`,
+				budget: budget,
+				revenue: revenue,
+				belongs_to_collection: belongsToCollection ? `"${belongsToCollection}"` : '""',
+				production_company: `"${productionCompanies}"`,
+			};
+		}
+
+		const updatedYamlContent = `---\n${Object.entries(updatedYaml).map(([key, value]) => `${key}: ${typeof value === 'string' ? value : JSON.stringify(value)}`).join('\n')}\n---`;
+
+		const fileContent = await this.app.vault.read(file);
+		const yamlRegex = /^---[\r\n]+[\s\S]*?[\r\n]+---/m;
+
+		if (yamlRegex.test(fileContent)) {
+			const updatedFileContent = fileContent.replace(yamlRegex, updatedYamlContent);
+			await this.app.vault.modify(file, updatedFileContent);
+			new Notice('File updated with new data successfully.');
+		} else {
+			new Notice('YAML front matter not found in file.');
+		}
 	}
 
 }
@@ -1268,4 +1629,427 @@ class TVTrackerSettingsTab extends PluginSettingTab {
 		
 	}
 
+}
+
+interface SearchResult {
+    id: number;
+    title: string;
+    release_date?: string;
+    overview: string;
+    type: 'Movie' | 'Series';
+    poster_path?: string;
+}
+
+class SearchModal extends Modal {
+	plugin: TVTrackerPlugin;
+	searchInput: HTMLInputElement;
+	resultsDiv: HTMLDivElement;
+	loading: boolean;
+
+	constructor(app: App, plugin: TVTrackerPlugin) {
+		super(app);
+		this.plugin = plugin;
+		this.loading = false;
+	}
+
+	async onOpen() {
+		const { contentEl } = this;
+		contentEl.empty();
+
+		// Create search input
+		contentEl.createEl('h2', { text: 'Search Movie/TV Show' });
+		
+		const searchContainer = contentEl.createDiv({ cls: 'search-container' });
+		this.searchInput = searchContainer.createEl('input', {
+			type: 'text',
+			placeholder: 'Enter title or TMDB ID...'
+		});
+
+		// Create results container with flex layout
+		this.resultsDiv = contentEl.createDiv({ cls: 'search-results' });
+		this.resultsDiv.style.display = 'flex';
+		this.resultsDiv.style.flexDirection = 'column';
+		this.resultsDiv.style.gap = '20px';
+
+		// Add search button
+		const searchButton = searchContainer.createEl('button', {
+			text: 'Search'
+		});
+
+		const performSearch = async () => {
+			if (this.loading) return;
+			this.loading = true;
+			
+			const query = this.searchInput.value.trim();
+			this.resultsDiv.empty();
+			this.resultsDiv.createEl('div', { text: 'Searching...' });
+
+			try {
+				let results = [];
+				// Check if input is a TMDB ID
+				if (/^\d+$/.test(query)) {
+					// Try searching as movie first
+					try {
+						const movieResponse = await requestUrl({
+							url: `https://api.themoviedb.org/3/movie/${query}?api_key=${this.plugin.settings.apiKey}`
+						});
+						if (movieResponse.status === 200) {
+							const data = movieResponse.json;
+							results = [{
+								id: data.id,
+								title: data.title,
+								release_date: data.release_date,
+								overview: data.overview,
+								type: 'Movie',
+								poster_path: data.poster_path
+							}];
+						}
+					} catch {
+						// If movie search fails, try TV show
+						try {
+							const tvResponse = await requestUrl({
+								url: `https://api.themoviedb.org/3/tv/${query}?api_key=${this.plugin.settings.apiKey}`
+							});
+							if (tvResponse.status === 200) {
+								const data = tvResponse.json;
+								results = [{
+									id: data.id,
+									title: data.name,
+									release_date: data.first_air_date,
+									overview: data.overview,
+									type: 'Series',
+									poster_path: data.poster_path
+								}];
+							}
+						} catch {
+							// Both searches failed
+							this.resultsDiv.empty();
+							this.resultsDiv.createEl('div', { text: 'No results found for this TMDB ID.' });
+							this.loading = false;
+							return;
+						}
+					}
+				} else {
+					// Search by title
+					const movieResponse = await requestUrl({
+						url: `https://api.themoviedb.org/3/search/multi?api_key=${this.plugin.settings.apiKey}&query=${encodeURIComponent(query)}&page=1`
+					});
+					
+					if (movieResponse.status === 200) {
+						results = movieResponse.json.results
+							.filter((item: any) => item.media_type === 'movie' || item.media_type === 'tv')
+							.map((item: any) => ({
+								id: item.id,
+								title: item.media_type === 'movie' ? item.title : item.name,
+								release_date: item.media_type === 'movie' ? item.release_date : item.first_air_date,
+								overview: item.overview,
+								type: item.media_type === 'movie' ? 'Movie' : 'Series',
+								poster_path: item.poster_path
+							}))
+							.slice(0, this.plugin.settings.numberOfResults);
+					}
+				}
+
+				this.resultsDiv.empty();
+				if (results.length === 0) {
+					this.resultsDiv.createEl('div', { text: 'No results found.' });
+				} else {
+					results.forEach((result: SearchResult) => {
+						const resultDiv = this.resultsDiv.createDiv({ cls: 'search-result' });
+						resultDiv.style.display = 'flex';
+						resultDiv.style.gap = '20px';
+						resultDiv.style.marginBottom = '20px';
+						
+						// Add poster image if available
+						if (result.poster_path) {
+							const posterDiv = resultDiv.createDiv({ cls: 'poster' });
+							const posterImg = posterDiv.createEl('img', {
+								attr: {
+									src: `https://image.tmdb.org/t/p/w200${result.poster_path}`,
+									alt: `${result.title} poster`
+								}
+							});
+							posterImg.style.maxWidth = '100px';
+							posterImg.style.height = 'auto';
+						}
+
+						const contentDiv = resultDiv.createDiv({ cls: 'content' });
+						const titleEl = contentDiv.createEl('div', { 
+							text: `${result.title} (${result.type})` 
+						});
+						titleEl.style.fontWeight = 'bold';
+						
+						if (result.release_date) {
+							contentDiv.createEl('div', { 
+								text: `Release Date: ${result.release_date}` 
+							});
+						}
+						
+						contentDiv.createEl('div', { 
+							text: result.overview 
+						});
+
+						const addButton = contentDiv.createEl('button', {
+							text: 'Add to Library'
+						});
+
+						addButton.addEventListener('click', async () => {
+							await this.addToLibrary(result);
+							this.close();
+						});
+					});
+				}
+			} catch (error) {
+				console.error('Search error:', error);
+				this.resultsDiv.empty();
+				this.resultsDiv.createEl('div', { text: 'An error occurred while searching.' });
+			}
+			
+			this.loading = false;
+		};
+
+		// Add event listeners
+		searchButton.addEventListener('click', performSearch);
+		this.searchInput.addEventListener('keypress', async (event) => {
+			if (event.key === 'Enter') {
+				await performSearch();
+			}
+		});
+	}
+
+	async addToLibrary(result: SearchResult) {
+		try {
+			// Create a modal for status and rating input
+			const statusModal = new Modal(this.app);
+			statusModal.titleEl.setText('Set Status and Rating');
+			
+			const contentEl = statusModal.contentEl;
+			contentEl.empty();
+			
+			// Create form elements
+			const form = contentEl.createEl('form');
+			
+			// Status text input
+			const statusContainer = form.createDiv({ cls: 'setting-item' });
+			statusContainer.createEl('label', { text: 'Status' });
+			const statusInput = statusContainer.createEl('input', {
+				type: 'text',
+				placeholder: 'Enter status (e.g., Watchlist, Watching, Completed)'
+			});
+			
+			// Rating slider container
+			const ratingContainer = form.createDiv({ cls: 'setting-item' });
+			ratingContainer.createEl('label', { text: 'Rating' });
+			
+			// Create a container for the slider and value display
+			const sliderContainer = ratingContainer.createDiv();
+			sliderContainer.style.display = 'flex';
+			sliderContainer.style.alignItems = 'center';
+			sliderContainer.style.gap = '10px';
+			
+			// Create the slider
+			const ratingSlider = sliderContainer.createEl('input', {
+				type: 'range',
+				attr: {
+					min: '1',
+					max: '5',
+					step: '0.5',
+					value: '1'
+				}
+			});
+			ratingSlider.style.flex = '1';
+			
+			// Create the value display
+			const ratingValue = sliderContainer.createEl('span', {
+				text: '1.0'
+			});
+			ratingValue.style.minWidth = '40px';
+			
+			// Update the value display when slider changes
+			ratingSlider.addEventListener('input', () => {
+				ratingValue.setText(ratingSlider.value);
+			});
+			
+			// Add some spacing
+			form.createEl('div', { cls: 'setting-item-description' });
+			
+			// Submit button
+			const submitButton = form.createEl('button', {
+				text: 'Add to Library',
+				cls: 'mod-cta'
+			});
+			
+			// Handle form submission
+			form.addEventListener('submit', async (e) => {
+				e.preventDefault();
+				const status = statusInput.value.trim();
+				const rating = parseFloat(ratingSlider.value);
+				
+				// Validate inputs
+				if (!status) {
+					new Notice('Please enter a status');
+					return;
+				}
+				
+				if (isNaN(rating) || rating < 1 || rating > 5) {
+					new Notice('Please select a valid rating between 1 and 5');
+					return;
+				}
+				
+				statusModal.close();
+				
+				// Continue with adding to library
+				const sanitizedTitle = result.title.replace(/[\\/:*?"<>|]/g, '');
+				const fileName = `${sanitizedTitle}`;
+				
+				// Get additional details based on the type
+				const endpoint = result.type === 'Movie' ? 'movie' : 'tv';
+				const detailsResponse = await requestUrl({
+					url: `https://api.themoviedb.org/3/${endpoint}/${result.id}?api_key=${this.plugin.settings.apiKey}&append_to_response=credits,videos`
+				});
+				
+				if (detailsResponse.status !== 200) {
+					throw new Error('Failed to fetch details');
+				}
+				
+				const details = detailsResponse.json;
+				
+				// Get cast and director information
+				const cast = details.credits.cast
+					.slice(0, 10) // Get top 10 cast members
+					.map((actor: any) => actor.name)
+					.join(', ');
+				
+				const directors = details.credits.crew
+					.filter((crew: any) => crew.job === 'Director')
+					.map((director: any) => director.name)
+					.join(', ');
+				
+				// Get trailer
+				let trailer = '';
+				if (details.videos && details.videos.results.length > 0) {
+					const trailerVideo = details.videos.results.find((video: any) => video.type === 'Trailer');
+					if (trailerVideo) {
+						trailer = `https://www.youtube.com/watch?v=${trailerVideo.key}`;
+					}
+				}
+
+				// Get production companies
+				const productionCompanies = details.production_companies
+					.map((company: any) => company.name)
+					.join(', ');
+				
+				// Fetch streaming availability
+				let streamingServices = '';
+				try {
+					const streamingResponse = await requestUrl({
+						url: `https://api.themoviedb.org/3/${endpoint}/${result.id}/watch/providers?api_key=${this.plugin.settings.apiKey}`
+					});
+					
+					if (streamingResponse.status === 200) {
+						const streamingData = streamingResponse.json;
+						const countryCode = this.plugin.settings.countryAvailableOn;
+						const providers = streamingData.results[countryCode]?.flatrate || [];
+						streamingServices = providers.map((provider: any) => provider.provider_name).join(', ');
+					}
+				} catch (error) {
+					console.error('Error fetching streaming availability:', error);
+					// Continue without streaming information
+				}
+				
+				// Create YAML content
+				const yaml = {
+					Title: `"${result.title}"`,
+					Rating: rating,
+					Status: status,
+					Type: result.type,
+					Poster: details.poster_path ? `https://image.tmdb.org/t/p/original${details.poster_path}` : '',
+					Genre: details.genres.map((g: any) => g.name).join(', '),
+					Duration: result.type === 'Movie' ? 
+						(details.runtime ? `${details.runtime} minutes` : '') :
+						(details.episode_run_time?.[0] ? `${details.episode_run_time[0]} minutes` : ''),
+					"Avg vote": details.vote_average,
+					Popularity: details.popularity,
+					Cast: cast,
+					"TMDB ID": result.id,
+					Director: directors,
+					tags: "tvtracker, " + result.type,
+					original_language: `"${details.original_language}"`,
+					overview: `"${details.overview.replace(/"/g, '\\"')}"`,
+					trailer: `"${trailer}"`,
+					budget: details.budget || 0,
+					revenue: details.revenue || 0,
+					belongs_to_collection: details.belongs_to_collection ? `"${details.belongs_to_collection.name}"` : '""',
+					production_company: `"${productionCompanies}"`,
+					release_date: `"${details.release_date || details.first_air_date || ''}"`,
+					"Available On": streamingServices ? `"${streamingServices}"` : ''
+				};
+				
+				if (result.type === 'Series') {
+					Object.assign(yaml, {
+						total_episodes: details.number_of_episodes,
+						total_seasons: details.number_of_seasons,
+						episodes_seen: 0,
+						episode_runtime: details.episode_run_time?.[0] || null,
+						next_episode: '',
+						air_date: `"${details.first_air_date || ''}"`,
+						last_episode_date: `"${details.last_air_date || ''}"`,
+						status: `"${details.status || ''}"`,
+						in_production: details.in_production ? "Yes" : "No"
+					});
+				}
+				
+				// Create content with exact YAML format
+				let content = '---\n';
+				content += Object.entries(yaml)
+					.filter(([_, value]) => value !== null && value !== undefined && value !== '')
+					.map(([key, value]) => `${key}: ${value}`)
+					.join('\n');
+				content += '\n---\n';
+				
+				// Add poster and trailer links
+				if (details.poster_path) {
+					content += `\n![Poster](https://image.tmdb.org/t/p/original${details.poster_path})\n`;
+				}
+				if (trailer) {
+					content += `\n![Trailer](${trailer})\n`;
+				}
+				
+				// For TV shows, add episodes section
+				if (result.type === 'Series') {
+					content += '\n# Episodes\n';
+					for (let i = 1; i <= details.number_of_seasons; i++) {
+						const seasonResponse = await requestUrl({
+							url: `https://api.themoviedb.org/3/tv/${result.id}/season/${i}?api_key=${this.plugin.settings.apiKey}`
+						});
+						if (seasonResponse.status === 200) {
+							const seasonData = seasonResponse.json;
+							content += `\n## Season ${i}\n`;
+							seasonData.episodes.forEach((episode: any) => {
+								content += `- [ ] Episode ${episode.episode_number}: ${episode.name}\n`;
+							});
+						}
+					}
+				}
+				
+				// Create the file
+				const filePath = `${this.plugin.settings.movieFolderPath}/${fileName}.md`;
+				await this.app.vault.create(filePath, content);
+				new Notice(`Added ${result.title} to your library!`);
+				
+			});
+			
+			// Show the modal
+			statusModal.open();
+			
+		} catch (error) {
+			console.error('Error adding to library:', error);
+			new Notice('Failed to add to library. Check console for details.');
+		}
+	}
+
+	onClose() {
+		const { contentEl } = this;
+		contentEl.empty();
+	}
 }
