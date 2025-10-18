@@ -4,50 +4,10 @@ import { TVTrackerSettingsTab } from './src/modals/SettingsTab';
 import { SearchModal } from './src/modals/SearchModal';
 import { Commands } from './src/commands/Commands';
 import { OperationRegistry } from './src/operations/OperationRegistry';
-import { FileService } from './src/services/FileService';
-import { TMDBService } from './src/services/TMDBService';
+import { FileService, TMDBService, YAMLService, SingleFileOperationsService } from './src/services';
+import { TVTrackerSettings } from './src/types/PluginTypes';
 
 
-interface TVTrackerSettings {
-	
-	movieFolderPath: string;
-	numberOfColumns: number;           
-    numberOfResults: number;            
-    toggleFittedImages: boolean;  
-	hideLegend: boolean;
-	hideMetrics: boolean;
-	hideBudgetMetrics: boolean;
-	hideGenreTasteIndexMetrics: boolean;           
-    imageFolderPath: string;   
-	apiKey: string;
-	topGenresNumber: number;
-	topActorsNumber: number;
-	topDirectorsNumber: number;
-	topYearsNumber: number;
-	topProductionCompaniesNumber: number;
-	topCollectionsNumber :number;
-	showTrailerAndPosterLinks: boolean;
-	topPerformersNumber:number;
-	minMoviesForMetrics: number;
-	minMoviesForMetricsDirectors: number;
-	minMoviesForMetricsCollections: number;
-	minMoviesForMetricsYears: number;
-	movieMetricsHeadingColor: string;
-    movieMetricsSubheadingColor: string;
-	budgetMetricsSubheadingColor: string;
-    movieCardColor: string;
-	metricsHeading: string;
-	defaultLanguageFilters: string;
-	defaultPropertiesToShow: string;
-	clickForInfo: boolean;
-	showEPSeen: boolean;
-	defaultSortingMode: string;
-	maxMoviesFromCollection: number;
-	themeMode: string;
-	title: string;
-	BlockBusterDefinition: number;
-	countryAvailableOn: string;
-}
 
 const DEFAULT_TV_SETTINGS: TVTrackerSettings = {
 	
@@ -100,6 +60,8 @@ export default class TVTrackerPlugin extends Plugin {
 	// Services and operations
 	private fileService!: FileService;
 	private tmdbService!: TMDBService;
+	private yamlService!: YAMLService;
+	private singleFileOperationsService!: SingleFileOperationsService;
 	private operationRegistry!: OperationRegistry;
 
 	async onload() {
@@ -108,6 +70,14 @@ export default class TVTrackerPlugin extends Plugin {
 		// Initialize services
 		this.fileService = new FileService(this.app, this.settings.movieFolderPath);
 		this.tmdbService = new TMDBService(this.settings.apiKey);
+		this.yamlService = new YAMLService();
+		this.singleFileOperationsService = new SingleFileOperationsService(
+			this.app, 
+			this.fileService, 
+			this.tmdbService, 
+			this.yamlService, 
+			this.settings
+		);
 		this.operationRegistry = new OperationRegistry(this.fileService, this.tmdbService);
 		
 		this.systemThemeMode = 'light'; // Default to light
@@ -206,128 +176,8 @@ export default class TVTrackerPlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	async addEpisodeListToCurrentFile(activeFile:TFile) {
-		console.log("Starting episode list update...");
-		
-		const fileContent = await this.app.vault.read(activeFile);
-		const frontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
-		
-		if (!frontmatter || frontmatter.Type !== 'Series') {
-			new Notice('The active file is not a Series.');
-			return;
-		}
-
-		if (!frontmatter["TMDB ID"]) {
-			new Notice('TMDB ID is missing in the frontmatter.');
-			return;
-		}
-
-		const tmdbId = frontmatter["TMDB ID"];
-		const apiKey = this.settings.apiKey;
-		const url = `https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${apiKey}&append_to_response=episodes`;
-
-		try {
-			const response = await requestUrl({ url });
-			const data = response.json;
-			const seasons = data.seasons || [];
-			console.log(`Found ${seasons.length} seasons total from TMDB`);
-
-			// Parse existing content to find existing seasons and their episodes
-			const existingContent = new Map(); // Map<season_number, Set<episode_number>>
-			let currentSeasonContent = '';
-			let currentSeasonNum = null;
-			
-			// Split content into lines for more precise parsing
-			const lines = fileContent.split('\n');
-			for (const line of lines) {
-				const seasonMatch = line.match(/^## Season (\d+)/);
-				if (seasonMatch) {
-					// If we were processing a season, save it
-					if (currentSeasonNum !== null) {
-						existingContent.set(currentSeasonNum, currentSeasonContent);
-					}
-					currentSeasonNum = parseInt(seasonMatch[1]);
-					currentSeasonContent = line + '\n';
-					console.log(`Found existing season ${currentSeasonNum}`);
-				} else if (currentSeasonNum !== null) {
-					currentSeasonContent += line + '\n';
-				}
-			}
-			// Save the last season if exists
-			if (currentSeasonNum !== null) {
-				existingContent.set(currentSeasonNum, currentSeasonContent);
-			}
-
-			let newContent = fileContent;
-			let hasNewContent = false;
-
-			// Add episodes heading if it doesn't exist
-			if (!newContent.includes('# Episodes')) {
-				newContent = newContent + '\n# Episodes\n';
-			}
-
-			for (const season of seasons) {
-				if (season.season_number > 0) {
-					console.log(`Processing season ${season.season_number}`);
-					const seasonDetails = await requestUrl({
-						url: `https://api.themoviedb.org/3/tv/${tmdbId}/season/${season.season_number}?api_key=${apiKey}`
-					});
-					const seasonData = seasonDetails.json;
-					
-					// Get existing episode numbers for this season
-					const existingEpisodes = new Set();
-					const existingSeasonContent = existingContent.get(season.season_number) || '';
-					const episodeMatches = existingSeasonContent.matchAll(/Episode (\d+):/g);
-					for (const match of episodeMatches) {
-						existingEpisodes.add(parseInt(match[1]));
-					}
-					
-					console.log(`Season ${season.season_number} has ${existingEpisodes.size} existing episodes`);
-					console.log(`TMDB shows ${seasonData.episodes.length} total episodes`);
-
-					let seasonContent = '';
-					let hasNewEpisodesInSeason = false;
-
-					for (const episode of seasonData.episodes) {
-						if (!existingEpisodes.has(episode.episode_number)) {
-							console.log(`Found new episode ${episode.episode_number} in season ${season.season_number}`);
-							hasNewEpisodesInSeason = true;
-							seasonContent += `- [ ] Episode ${episode.episode_number}: ${episode.name}\n`;
-						}
-					}
-
-					if (hasNewEpisodesInSeason) {
-						hasNewContent = true;
-						if (existingContent.has(season.season_number)) {
-							// Find the end of the existing season section
-							const seasonHeaderRegex = new RegExp(`## Season ${season.season_number}[^#]*`);
-							const seasonMatch = newContent.match(seasonHeaderRegex);
-							if (seasonMatch && seasonMatch.index !== undefined && seasonMatch[0] !== undefined) {
-								const insertPosition = seasonMatch.index + seasonMatch[0].length;
-								newContent = newContent.slice(0, insertPosition) + seasonContent + newContent.slice(insertPosition);
-								console.log(`Added ${seasonContent.split('\n').length - 1} new episodes to existing season ${season.season_number}`);
-							}
-						} else {
-							// Add new season at the end
-							newContent += `\n## Season ${season.season_number}\n${seasonContent}`;
-							console.log(`Added new season ${season.season_number} with ${seasonContent.split('\n').length - 1} episodes`);
-						}
-					}
-				}
-			}
-
-			if (hasNewContent && newContent !== fileContent) {
-				await this.app.vault.modify(activeFile, newContent);
-				new Notice('New episodes added successfully.');
-				console.log('File updated with new episodes');
-			} else {
-				new Notice('No new episodes found to add.');
-				console.log('No new episodes found to add');
-			}
-		} catch (error) {
-			console.error('Error fetching episode data:', error);
-			new Notice('Error fetching episode data.');
-		}
+	async addEpisodeListToCurrentFile(activeFile: TFile) {
+		await this.singleFileOperationsService.addEpisodeList(activeFile);
 	}
 
 	// Method to register a view for updates
@@ -425,236 +275,15 @@ export default class TVTrackerPlugin extends Plugin {
 
 	// Add new methods for single file updates
 	async updateEPTrackingForFile(file: TFile) {
-		const cache = this.app.metadataCache.getFileCache(file);
-		const yaml = cache?.frontmatter;
-
-		if (!yaml) {
-			new Notice('No YAML front matter found in file.');
-			return;
-		}
-
-		const type = yaml.Type;
-		const tmdbId = yaml["TMDB ID"];
-
-		if (type !== 'Series' || !tmdbId) {
-			new Notice('File is not a Series or missing TMDB ID.');
-			return;
-		}
-
-		const response = await requestUrl({
-			url: `https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${this.settings.apiKey}&append_to_response=last_episode_to_air`,
-			method: 'GET',
-		});
-
-		if (response.status !== 200) {
-			new Notice('Error fetching data from TMDB.');
-			return;
-		}
-
-		const data = response.json;
-		const totalEpisodes = data.number_of_episodes;
-		const totalSeasons = data.number_of_seasons;
-		let episode_runtime = data.episode_run_time && data.episode_run_time.length > 0 ? data.episode_run_time[0] : null;
-
-		if (!episode_runtime && data.last_episode_to_air) {
-			episode_runtime = data.last_episode_to_air.runtime;
-		}
-
-		let updatedYaml = {};
-
-		if (!('episodes_seen' in yaml)) {
-			updatedYaml = {
-				...yaml,
-				total_episodes: totalEpisodes,
-				total_seasons: totalSeasons,
-				episode_runtime: episode_runtime,
-				episodes_seen: 0
-			};
-		} else {
-			updatedYaml = {
-				...yaml,
-				total_episodes: totalEpisodes,
-				total_seasons: totalSeasons,
-				episode_runtime: episode_runtime
-			};
-		}
-
-		const escapeDoubleQuotes = (str: string) => str.replace(/"/g, '\\"');
-		const updatedYamlContent = `---\n${Object.entries(updatedYaml).map(([key, value]) => {
-			const escapedValue = typeof value === 'string' ? `"${escapeDoubleQuotes(value)}"` : value;
-			return `${key}: ${escapedValue}`;
-		}).join('\n')}\n---`;
-
-		const fileContent = await this.app.vault.read(file);
-		const yamlRegex = /^---[\r\n]+[\s\S]*?[\r\n]+---/m;
-
-		if (yamlRegex.test(fileContent)) {
-			const updatedFileContent = fileContent.replace(yamlRegex, updatedYamlContent);
-			await this.app.vault.modify(file, updatedFileContent);
-			new Notice('Episode tracking data updated successfully.');
-		} else {
-			new Notice('YAML front matter not found in file.');
-		}
+		await this.singleFileOperationsService.updateEpisodeTracking(file);
 	}
 
 	async updateAvailableOnForFile(file: TFile) {
-		const cache = this.app.metadataCache.getFileCache(file);
-		const yaml = cache?.frontmatter;
-
-		if (!yaml) {
-			new Notice('No YAML front matter found in file.');
-			return;
-		}
-
-		const tmdbId = yaml["TMDB ID"];
-		const type = yaml.Type;
-
-		if (!tmdbId) {
-			new Notice('TMDB ID not found in file.');
-			return;
-		}
-
-		const endpoint = type === 'Movie' ? 'movie' : 'tv';
-		const response = await requestUrl({
-			url: `https://api.themoviedb.org/3/${endpoint}/${tmdbId}/watch/providers?api_key=${this.settings.apiKey}`,
-		});
-
-		if (response.status !== 200) {
-			new Notice('Error fetching data from TMDB.');
-			return;
-		}
-
-		const data = response.json;
-		const countryCode = this.settings.countryAvailableOn;
-		const providers = data.results[countryCode]?.flatrate || [];
-		const providerNames = providers.map((provider: any) => provider.provider_name).join(', ');
-
-		let updatedYaml = {
-			...yaml,
-			"Available On": providerNames || ''
-		};
-
-		const escapeDoubleQuotes = (str: string) => str.replace(/"/g, '\\"');
-		const updatedYamlContent = `---\n${Object.entries(updatedYaml).map(([key, value]) => {
-			const escapedValue = typeof value === 'string' ? `"${escapeDoubleQuotes(value)}"` : value;
-			return `${key}: ${escapedValue}`;
-		}).join('\n')}\n---`;
-
-		const fileContent = await this.app.vault.read(file);
-		const yamlRegex = /^---[\r\n]+[\s\S]*?[\r\n]+---/m;
-
-		if (yamlRegex.test(fileContent)) {
-			const updatedFileContent = fileContent.replace(yamlRegex, updatedYamlContent);
-			await this.app.vault.modify(file, updatedFileContent);
-			new Notice('Streaming availability updated successfully.');
-		} else {
-			new Notice('YAML front matter not found in file.');
-		}
+		await this.singleFileOperationsService.updateStreamingAvailability(file);
 	}
 
 	async updateNewPropertiesForFile(file: TFile) {
-		const cache = this.app.metadataCache.getFileCache(file);
-		const yaml = cache?.frontmatter;
-
-		if (!yaml) {
-			new Notice('No YAML front matter found in file.');
-			return;
-		}
-
-		const type = yaml.Type;
-		const tmdbId = yaml["TMDB ID"];
-
-		if (!type || !tmdbId) {
-			new Notice('Type or TMDB ID not found in file.');
-			return;
-		}
-
-		const endpoint = type === 'Movie' ? `movie` : `tv`;
-		const response = await requestUrl({
-			url: `https://api.themoviedb.org/3/${endpoint}/${tmdbId}?api_key=${this.settings.apiKey}&append_to_response=videos`,
-		});
-
-		if (response.status !== 200) {
-			new Notice('Error fetching data from TMDB.');
-			return;
-		}
-
-		const data = response.json;
-		const originalLanguage = data.original_language;
-		const overview = data.overview;
-
-		let productionCompanies = '';
-		if (data.production_companies && data.production_companies.length > 0) {
-			productionCompanies = data.production_companies.slice(0, 2).map((company: any) => company.name).join(', ');
-		}
-
-		let trailer = '';
-		if (data.videos && data.videos.results.length > 0) {
-			const trailerData = data.videos.results.find((video: any) => video.type === 'Trailer');
-			if (trailerData) {
-				trailer = `https://www.youtube.com/watch?v=${trailerData.key}`;
-			}
-		}
-
-		let budget = null;
-		let revenue = null;
-		let belongsToCollection = null;
-		let releaseDate = null;
-
-		if (type === 'Movie') {
-			budget = data.budget;
-			revenue = data.revenue;
-			belongsToCollection = data.belongs_to_collection ? data.belongs_to_collection.name : null;
-			releaseDate = data.release_date;
-		}
-
-		const escapeDoubleQuotes = (str: string) => str.replace(/"/g, '\\"');
-
-		if (yaml.Title) {
-			const title = yaml.Title;
-			if (!title.startsWith('"') || !title.endsWith('"')) {
-				yaml.Title = `"${title}"`;
-			}
-		}
-
-		let updatedYaml = {};
-		if (releaseDate) {
-			updatedYaml = {
-				...yaml,
-				original_language: `"${originalLanguage}"`,
-				overview: `"${escapeDoubleQuotes(overview)}"`,
-				trailer: `"${trailer}"`,
-				budget: budget,
-				revenue: revenue,
-				belongs_to_collection: belongsToCollection ? `"${belongsToCollection}"` : '""',
-				production_company: `"${productionCompanies}"`,
-				release_date: `"${releaseDate}"`,
-			};
-		} else {
-			updatedYaml = {
-				...yaml,
-				original_language: `"${originalLanguage}"`,
-				overview: `"${escapeDoubleQuotes(overview)}"`,
-				trailer: `"${trailer}"`,
-				budget: budget,
-				revenue: revenue,
-				belongs_to_collection: belongsToCollection ? `"${belongsToCollection}"` : '""',
-				production_company: `"${productionCompanies}"`,
-			};
-		}
-
-		const updatedYamlContent = `---\n${Object.entries(updatedYaml).map(([key, value]) => `${key}: ${typeof value === 'string' ? value : JSON.stringify(value)}`).join('\n')}\n---`;
-
-		const fileContent = await this.app.vault.read(file);
-		const yamlRegex = /^---[\r\n]+[\s\S]*?[\r\n]+---/m;
-
-		if (yamlRegex.test(fileContent)) {
-			const updatedFileContent = fileContent.replace(yamlRegex, updatedYamlContent);
-			await this.app.vault.modify(file, updatedFileContent);
-			new Notice('File updated with new data successfully.');
-		} else {
-			new Notice('YAML front matter not found in file.');
-		}
+		await this.singleFileOperationsService.updateProperties(file);
 	}
 
 }
