@@ -3,6 +3,9 @@ import { TVTracker,VIEW_TV } from 'view';
 import { TVTrackerSettingsTab } from './src/modals/SettingsTab';
 import { SearchModal } from './src/modals/SearchModal';
 import { Commands } from './src/commands/Commands';
+import { OperationRegistry } from './src/operations/OperationRegistry';
+import { FileService } from './src/services/FileService';
+import { TMDBService } from './src/services/TMDBService';
 
 
 interface TVTrackerSettings {
@@ -93,9 +96,20 @@ export default class TVTrackerPlugin extends Plugin {
 	activeViews: Set<TVTracker> = new Set();
 	refreshTimeout: NodeJS.Timeout | null = null;
 	fileWatcherRegistered = false;
+	
+	// Services and operations
+	private fileService!: FileService;
+	private tmdbService!: TMDBService;
+	private operationRegistry!: OperationRegistry;
 
 	async onload() {
 		await this.loadSettings();
+		
+		// Initialize services
+		this.fileService = new FileService(this.app, this.settings.movieFolderPath);
+		this.tmdbService = new TMDBService(this.settings.apiKey);
+		this.operationRegistry = new OperationRegistry(this.fileService, this.tmdbService);
+		
 		this.systemThemeMode = 'light'; // Default to light
 		const rootElement = document.body; // or another root element of the app
 
@@ -164,455 +178,24 @@ export default class TVTrackerPlugin extends Plugin {
 	}
 
 	async removeTrailerAndPosterLinks() {
-		const movieFolder = this.app.vault.getAbstractFileByPath(this.settings.movieFolderPath);
-		if (!movieFolder || !(movieFolder as any).children) return;
-	
-		const files = (movieFolder as any).children.filter((file: any) => file.extension === 'md');
-		
-	
-		let iteration = 0;
-		let successCount = 0;
-		let errorCount = 0;
-		const removeLinksNotice = new Notice(`Processed files: ${successCount}/${files.length}\n Errors: ${errorCount}`, 0);
-
-		for (const file of files) {
-			iteration += 1;
-		
-	
-			const cache = this.app.metadataCache.getFileCache(file);
-			const yaml = cache?.frontmatter;
-	
-	
-			if (!yaml) {
-				errorCount++;
-				new Notice(`Error with reading YAML: ${file.path}`);
-				continue;
-			}
-	
-			const poster = yaml.Poster;
-			const trailer = yaml.trailer;
-			
-	
-			let fileContent = await this.app.vault.read(file);
-	
-			if (poster) {
-				const posterLink = `![Poster](${poster})`;
-				
-				fileContent = fileContent.replace(`${posterLink}`, '\n');
-			}
-			if (trailer) {
-				const trailerLink = `![Trailer](${trailer})`;
-				fileContent = fileContent.replace(`${trailerLink}`, '\n');
-			}
-	
-	
-			try {
-				await this.app.vault.modify(file, fileContent);
-				successCount++;
-			} catch (error) {
-				console.error(`Failed to update file ${file.path}`, error);
-				errorCount++;
-			}
-		
-			removeLinksNotice.setMessage(`Processed files: ${successCount}/${files.length}\n Errors: ${errorCount}`);
-	}
-
-	removeLinksNotice.setMessage(`Processising complete. Files processed: ${iteration}, Success: ${successCount}, Errors: ${errorCount}`);;
-	setTimeout(() => removeLinksNotice.hide(), 3000);
+		await this.operationRegistry.removeTrailerLinks();
 	}
 	
 
 	async addTrailerAndPoster() {
-        const movieFolder = this.app.vault.getAbstractFileByPath(this.settings.movieFolderPath);
-        if (!movieFolder || !(movieFolder as any).children) return;
-
-        const files = (movieFolder as any).children.filter((file: any) => file.extension === 'md');
-     
-        let iteration = 0;
-        let successCount = 0;
-        let errorCount = 0;
-		const addLinksNotice = new Notice(`Processed files: ${successCount}/${files.length}\n Errors: ${errorCount}`, 0);
-
-        for (const file of files) {
-            iteration = iteration + 1;
-          
-           
-            const cache = this.app.metadataCache.getFileCache(file);
-            const yaml = cache?.frontmatter;
-
-          
-            if (!yaml) {
-                errorCount++;
-				new Notice(`Error with reading YAML: ${file.path}`);
-				console.error(`Error with reading YAML: ${file.path}`);
-                continue;
-            }
-
-            const poster = yaml.Poster;
-            const trailer = yaml.trailer;
-			
-			let newContent = await this.app.vault.read(file);
-			if (poster) {
-				const posterLink = `![Poster](${poster})`;
-				newContent = `${newContent}\n${posterLink}`;
-			}
-			if (trailer) {
-				const trailerLink = `![Trailer](${trailer})`;
-				newContent = `${newContent}\n${trailerLink}`;
-			} else if (poster) {
-				new Notice(`No trailer found for file: ${file.path}`);
-				console.log(`No trailer found for file: ${file.path}`);
-			}
-		
-			if (poster || trailer) {
-				await this.app.vault.modify(file, newContent);
-				successCount++;
-				
-			} 
-			else {
-				new Notice(`Error with reading Poster or Trailer: ${file.path}`);
-				console.error(`Error with reading Poster or Trailer: ${file.path}`);
-                errorCount++;
-            }
-
-			addLinksNotice.setMessage(`Processed files: ${successCount}/${files.length}\n Errors: ${errorCount}`);
-        }
-
-		addLinksNotice.setMessage(`Processising complete. Files processed: ${iteration}, Success: ${successCount}, Errors: ${errorCount}`);;
-		setTimeout(() => addLinksNotice.hide(), 3000);
+		await this.operationRegistry.addTrailerLinks();
     }
 
 	async updateNewProperties() {
-		// Get all movie files
-		const movieFolder = this.app.vault.getAbstractFileByPath(this.settings.movieFolderPath);
-		if (!movieFolder || !(movieFolder as any).children) return;
-	
-		const files = (movieFolder as any).children.filter((file: any) => file.extension === 'md');
-		
-		let iteration = 0;
-		let successCount = 0;
-		let errorCount = 0;
-		const updateFilesNotice = new Notice(`Processed files: ${successCount}/${files.length}\n Errors: ${errorCount}`, 0);
-		
-		for (const file of files) {
-			iteration = iteration + 1;
-	
-			const filePath = file.path;
-	
-			const cache = this.app.metadataCache.getFileCache(file);
-			const yaml = cache?.frontmatter;
-	
-			if (!yaml) {
-				errorCount++;
-				continue;
-			}
-	
-			const type = yaml.Type;
-			const tmdbId = yaml["TMDB ID"];
-	
-			if (!type || !tmdbId) {
-				errorCount++;
-				continue;
-			}
-	
-			const endpoint = type === 'Movie' ? `movie` : `tv`;
-	
-			// Fetch original language from TMDB API
-			const response = await requestUrl({
-				url: `https://api.themoviedb.org/3/${endpoint}/${tmdbId}?api_key=${this.settings.apiKey}&append_to_response=videos`,
-			});
-	
-			if (response.status !== 200) {
-				errorCount++;
-				continue;
-			}
-	
-			const data = response.json;
-	
-			const originalLanguage = data.original_language;
-			const overview = data.overview;
-	
-			let productionCompanies = '';
-			if (data.production_companies && data.production_companies.length > 0) {
-				productionCompanies = data.production_companies.slice(0, 2).map((company: any) => company.name).join(', ');
-			}
-	
-			let trailer = '';
-			if (data.videos && data.videos.results.length > 0) {
-				const trailerData = data.videos.results.find((video: any) => video.type === 'Trailer');
-				if (trailerData) {
-					trailer = `https://www.youtube.com/watch?v=${trailerData.key}`;
-				}
-			}
-	
-			let budget = null;
-			let revenue = null;
-			let belongsToCollection = null;
-			let releaseDate = null;
-	
-			if (type === 'Movie') {
-				budget = data.budget;
-				revenue = data.revenue;
-				belongsToCollection = data.belongs_to_collection ? data.belongs_to_collection.name : null;
-				releaseDate = data.release_date;
-			}
-	
-			const escapeDoubleQuotes = (str: string) => str.replace(/"/g, '\\"');
-	
-			if (yaml.Title) {
-				const title = yaml.Title;
-				if (!title.startsWith('"') || !title.endsWith('"')) {
-					yaml.Title = `"${title}"`;
-				} else {
-					// Escape internal double quotes if the title is already quoted
-					yaml.Title = `${title}`;
-				}
-			}
-			let updatedYaml={}
-			if(releaseDate){
-				 updatedYaml = {
-					...yaml,
-					original_language: `"${originalLanguage}"`,
-					overview: `"${escapeDoubleQuotes(overview)}"`,
-					trailer: `"${trailer}"`,
-					budget: budget,
-					revenue: revenue,
-					belongs_to_collection: belongsToCollection ? `"${belongsToCollection}"` : '""',
-					production_company: `"${productionCompanies}"`,
-					release_date: `"${releaseDate}"`,
-				};
-			}
-			else{
-				updatedYaml = {
-					...yaml,
-					original_language: `"${originalLanguage}"`,
-					overview: `"${escapeDoubleQuotes(overview)}"`,
-					trailer: `"${trailer}"`,
-					budget: budget,
-					revenue: revenue,
-					belongs_to_collection: belongsToCollection ? `"${belongsToCollection}"` : '""',
-					production_company: `"${productionCompanies}"`,
-				};
-			}
-	
-			
-	
-			// if (type === 'Movie') {
-			// 	updatedYaml.release_date = 
-			// }
-	
-			const updatedYamlContent = `---\n${Object.entries(updatedYaml).map(([key, value]) => `${key}: ${typeof value === 'string' ? value : JSON.stringify(value)}`).join('\n')}\n---`;
-	
-			const fileContent = await this.app.vault.read(file);
-	
-			const yamlRegex = /^---[\r\n]+[\s\S]*?[\r\n]+---/m;
-	
-			if (yamlRegex.test(fileContent)) {
-				const updatedFileContent = fileContent.replace(yamlRegex, updatedYamlContent);
-	
-				// Save the updated content back to the file
-				await this.app.vault.modify(file, updatedFileContent);
-				successCount++;
-			} else {
-				console.error("YAML front matter not found in file:", file.path);
-				errorCount++;
-			}
-	
-			updateFilesNotice.setMessage(`Processed files: ${successCount}/${files.length}\n Errors: ${errorCount}`);
-		}
-	
-		updateFilesNotice.setMessage(`Processing Complete. New properties added for ${successCount} files. ${errorCount} files encountered errors.`);
-		setTimeout(() => updateFilesNotice.hide(), 3000);
+		await this.operationRegistry.updateProperties();
 	}
 	
 	async updateEPTracking() {
-		// Get all series files
-		const seriesFolder = this.app.vault.getAbstractFileByPath(this.settings.movieFolderPath);
-		if (!seriesFolder || !(seriesFolder as any).children) return;
-	
-		const files = (seriesFolder as any).children.filter((file: any) => file.extension === 'md');
-		let iteration = 0;
-		let successCount = 0;
-		let errorCount = 0;
-		const updateFilesNotice = new Notice(`Processed files: ${successCount}/${files.length}\n Errors: ${errorCount}`, 0);
-		const escapeDoubleQuotes = (str: string) => str.replace(/"/g, '\\"');
-		for (const file of files) {
-			iteration++;
-			const filePath = file.path;
-			const cache = this.app.metadataCache.getFileCache(file);
-			const yaml = cache?.frontmatter;
-	
-			if (!yaml) {
-				errorCount++;
-				console.error("YAML front matter not found in file:", file.path)
-				continue;
-			}
-	
-			const type = yaml.Type;
-			const tmdbId = yaml["TMDB ID"];
-	
-			if (type !== 'Series' || !tmdbId) {
-				continue;
-			}
-
-			
-			const response = await requestUrl({
-				url: `https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${this.settings.apiKey}&append_to_response=last_episode_to_air`,
-				method: 'GET',
-			});
-	
-			if (response.status !== 200) {
-				errorCount++;
-				console.error("Bad response from TMDB", file.path)
-				continue;
-			}
-	
-			const data = response.json;
-			const totalEpisodes = data.number_of_episodes;
-			const totalSeasons = data.number_of_seasons;
-			let episode_runtime = data.episode_run_time && data.episode_run_time.length > 0 ? data.episode_run_time[0] : null;
-	
-			if (!episode_runtime && data.last_episode_to_air) {
-				episode_runtime = data.last_episode_to_air.runtime;
-			}
-		
-	
-			let updatedYaml ={}
-	
-			// Only add episodes_seen if it doesn't already exist
-			if (!('episodes_seen' in yaml)) {
-				updatedYaml = {
-					...yaml,
-					total_episodes: totalEpisodes,
-					total_seasons: totalSeasons,
-					episode_runtime: episode_runtime,
-					episodes_seen: 0
-				};
-			}
-			else {
-				 updatedYaml = {
-					...yaml,
-					total_episodes: totalEpisodes,
-					total_seasons: totalSeasons,
-					episode_runtime: episode_runtime
-				};
-			}
-	
-			const updatedYamlContent = `---\n${Object.entries(updatedYaml).map(([key, value]) => {
-				const escapedValue = typeof value === 'string' ? `"${escapeDoubleQuotes(value)}"` : value;
-				return `${key}: ${escapedValue}`;
-			}).join('\n')}\n---`;
-	
-			const fileContent = await this.app.vault.read(file);
-	
-			const yamlRegex = /^---[\r\n]+[\s\S]*?[\r\n]+---/m;
-	
-			if (yamlRegex.test(fileContent)) {
-				const updatedFileContent = fileContent.replace(yamlRegex, updatedYamlContent);
-				await this.app.vault.modify(file, updatedFileContent);
-				successCount++;
-			} else {
-				console.error("YAML front matter not found in file:", file.path);
-				errorCount++;
-			}
-	
-			updateFilesNotice.setMessage(`Processed files: ${successCount}/${files.length}\n Errors: ${errorCount}`);
-		}
-	
-		updateFilesNotice.setMessage(`Processing Complete. New properties added for ${successCount} files. ${errorCount} files encountered errors.`);
-		setTimeout(() => updateFilesNotice.hide(), 3000);
+		await this.operationRegistry.updateEpisodeTracking();
 	}
 
 	async updateAvailableOn() {
-		const movieFolder = this.app.vault.getAbstractFileByPath(this.settings.movieFolderPath);
-		if (!movieFolder || !(movieFolder as any).children) return;
-
-		const files = (movieFolder as any).children.filter((file: any) => file.extension === 'md');
-		// Take only first 5 files
-		//const filesToProcess = files.slice(0, 20);
-		const filesToProcess = files;
-		
-		let successCount = 0;
-		let errorCount = 0;
-		const updateFilesNotice = new Notice(`Processed files: ${successCount}/${filesToProcess.length}\n Errors: ${errorCount}`, 0);
-		const escapeDoubleQuotes = (str: string) => str.replace(/"/g, '\\"');
-
-		for (const file of filesToProcess) {
-			try {
-				//console.log("Processing file:", file.path);
-				const cache = this.app.metadataCache.getFileCache(file);
-				const yaml = cache?.frontmatter;
-
-				if (!yaml) {
-					errorCount++;
-					console.error("YAML front matter not found in file:", file.path);
-					continue;
-				}
-
-				const tmdbId = yaml["TMDB ID"];
-				const type = yaml.Type;
-
-				if (!tmdbId) {
-					console.log("Skipping file - no TMDB ID found:", file.path);
-					continue;
-				}
-
-				const endpoint = type === 'Movie' ? 'movie' : 'tv';
-				let response;
-				try {
-					response = await requestUrl({
-						url: `https://api.themoviedb.org/3/${endpoint}/${tmdbId}/watch/providers?api_key=${this.settings.apiKey}`,
-					});
-				} catch (error) {
-					console.error(`API call failed for file ${file.path}:`, error);
-					errorCount++;
-					continue;
-				}
-				
-				if (response.status !== 200) {
-					console.error(`Bad response from TMDB for file ${file.path}. Status: ${response.status}`);
-					errorCount++;
-					continue;
-				}
-
-				const data = response.json;
-				const countryCode = this.settings.countryAvailableOn;
-				const providers = data.results[countryCode]?.flatrate || [];
-
-				const providerNames = providers.map((provider: any) => provider.provider_name).join(', ');
-				
-				let updatedYaml = {
-					...yaml,
-					"Available On": providerNames || ''
-				};
-
-				const updatedYamlContent = `---\n${Object.entries(updatedYaml).map(([key, value]) => {
-					const escapedValue = typeof value === 'string' ? `"${escapeDoubleQuotes(value)}"` : value;
-					return `${key}: ${escapedValue}`;
-				}).join('\n')}\n---`;
-
-				const fileContent = await this.app.vault.read(file);
-				const yamlRegex = /^---[\r\n]+[\s\S]*?[\r\n]+---/m;
-
-				if (yamlRegex.test(fileContent)) {
-					const updatedFileContent = fileContent.replace(yamlRegex, updatedYamlContent);
-					await this.app.vault.modify(file, updatedFileContent);
-					successCount++;
-					console.log("Successfully updated file:", file.path);
-				} else {
-					console.error("YAML front matter not found in file:", file.path);
-					errorCount++;
-				}
-			} catch (error) {
-				console.error(`Error processing file ${file.path}:`, error);
-				errorCount++;
-			}
-
-			updateFilesNotice.setMessage(`Processed files: ${successCount}/${filesToProcess.length}\n Errors: ${errorCount}`);
-		}
-
-		updateFilesNotice.setMessage(`Processing Complete. Streaming availability updated for ${successCount} files. ${errorCount} files encountered errors. Please see console for more details on the errors.`);
-		setTimeout(() => updateFilesNotice.hide(), 3000);
+		await this.operationRegistry.updateStreamingInfo(this.settings.countryAvailableOn);
 	}
 	
 	async loadSettings() {
